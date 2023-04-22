@@ -2,42 +2,85 @@
 #define __COROUTINE_H__
 
 #include <memory>
+#include <future>
 #include <exception>
 
-#include "coroutine_common.h"
+#include "common/any.h"
+#include "common/any_func.h"
 #include "context/ucontext_helper.h"
 
 // coroutine status
 enum {
-    COROUTINE_IDLE = 0,
-    COROUTINE_READY,
-    COROUTINE_RUNNING,
-    COROUTINE_SUSPEND,
-    COROUTINE_FINISH,
-}
+    CO_STATUS_IDLE = 0,
+    CO_STATUS_READY,
+    CO_STATUS_RUNNING,
+    CO_STATUS_SUSPEND,
+    CO_STATUS_FINISH,
+};
+
+// coroutine param
+enum {
+	CO_PARAM_NIL = 0,
+	CO_PARAM_CHANNEL_SEND,
+	CO_PARAM_CHANNEL_RECV,
+};
+
+struct CoParam
+{
+	int		type;		// coroutine param
+	Any		value;
+};
 
 class Coroutine
 {
 public:
-    Coroutine(int index);
-    ~Coroutine();
+    Coroutine() {
+		_status = CO_STATUS_IDLE;	
+		_next_time = 0;
+
+		getcontext(&_ctx);
+
+		int size = CoSchedule::get_instance()->get_stack_size();
+		_stack = malloc(size);
+
+		_ctx.uc_stack.ss_sp = _stack;
+		_ctx.uc_stack.ss_size  = size;
+		_ctx.uc_stack.ss_flags = 0;
+	}
+    ~Coroutine() {
+		free(_stack);	
+	}
+
+	void set_func(const AnyFunc& f) {
+		_func = f;
+	}
 
     context_t* get_context() {
         return &_ctx;
     } 
 
-    Any run() throw exception;
+    void run() {
+		_result = _func();
+		_status = CO_STATUS_FINISH;
+	}
 
 public:
-    int     _executor_index;    // 协程执行器索引
-    int     _status;            // 协程状态
-    int     _active_time;       // 下次活跃时间（单位：毫秒级别）
+    int		_status;	// 协程状态
 
-    shared_ptr<AnyFunction> _func;
+	AnyFunc _func;		// 协程执行函数
+	Any		_result;	// 协程执行结果
+
+	CoParam	_param;
+
+	shared_ptr<Coroutine> 	_prev;
+	shared_ptr<Coroutine> 	_next;
+
+	weak_ptr<CoExecutor>	_co_executor;
 
 private:
-    context_t  _ctx;
-    int         _index;
+    context_t	_ctx;
+
+	void*		_stack;
 };
 
 #endif

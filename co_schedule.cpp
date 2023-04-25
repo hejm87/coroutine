@@ -1,5 +1,7 @@
 #include "coroutine_schedule.h"
 
+using namespace std;
+
 CoSchedule::CoSchedule()
 {
     _is_running = false;
@@ -29,6 +31,7 @@ void CoSchedule::create(const AnyFunc& func, bool priority)
         throw CoException(CO_ERROR_NO_RESOURCE);
     }
     co->_func = func;
+    co->_priority = priority;
     if (priority) {
         _lst_ready.push_front(co);
     } else {
@@ -57,8 +60,9 @@ CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority)
             p.set_value(func());
         });
         awaiter._external_thread = true;
-        awaiter._wait_future = p.get_future;:wait
+        awaiter._wait_future = p.get_future;
     }
+    co->_priority = priority;
     if (priority) {
         _lst_ready.push_front(co);
     } else {
@@ -109,6 +113,16 @@ bool CoSchedule::stop_timer(const CoTimerId& timer_id)
     return _lst_timer.remove(timer_id);
 }
 
+vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
+{
+    vector<shared_ptr<Coroutine>> cos;
+    lock_guard<mutex> lock(_mutex);
+    shared_ptr<Coroutine> co;
+    if (_lst_ready.pop_front(co)) {
+        cos.push_back(co);
+    }
+}
+
 void CoSchedule::run_timer()
 {
     while (!_is_set_end) {
@@ -134,9 +148,8 @@ void CoSchedule::run_timer()
             lock_guard<mutex> lock(_mutex);
             funcs = _lst_timer.get_enable_timer();
         }
-
         for (auto& item : funcs) {
-            xxxx
+            create(item, true);
         }
     }
 }

@@ -26,9 +26,9 @@ public:
 
     void sleep(int sleep_ms);
 
-    void yield(function<void()> do_after = nullptr);
+    void yield(std::function<void()> do_after = nullptr);
 
-    void resume(shared_ptr<Coroutine> co);
+    void resume(std::shared_ptr<Coroutine> co);
 
     /*
     函数功能：设置定时器
@@ -40,6 +40,8 @@ public:
     CoTimerId set_timer(const AnyFunc& func, int delay_ms, int period_ms = 0);
 
     bool stop_timer(const CoTimerId& timer_id);
+
+    std::vector<std::shared_ptr<Coroutine>> get_global_co(int size = 1);
 
     bool is_set_end() {
         return _is_set_end;
@@ -59,7 +61,7 @@ private:
 
     void run_timer();
 
-    bool get_free_co(shared_ptr<Coroutine> &co) {
+    bool get_free_co(std::shared_ptr<Coroutine> &co) {
         lock_guard<mutex> lock(_mutex);
         return _lst_free.pop_front(co);
     }

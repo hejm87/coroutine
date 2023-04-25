@@ -34,7 +34,6 @@ private:
     bool on_execute();
 
     bool get_ready_co(std::shared_ptr<Coroutine>& co);
-    bool get_global_co(std::vector<std::shared_ptr<Coroutine>>& cos, int size = DEF_GET_GLOBAL_CO_SIZE);
 
 private:
     CoList      _lst_wait;      // 等待队列

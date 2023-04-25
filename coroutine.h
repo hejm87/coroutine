@@ -66,6 +66,7 @@ public:
 
 public:
     int		_status;	// 协程状态
+	bool	_priority;	// 优先执行
 
 	AnyFunc _func;		// 协程执行函数
 	Any		_result;	// 协程执行结果

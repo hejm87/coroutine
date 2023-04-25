@@ -114,17 +114,6 @@ bool CoExecutor::stop_timer(const CoTimer& timer)
     return ret;
 }
 
-//bool CoExecutor::on_timer()
-//{
-//    lock_guard<mutex> lock(_mutex);
-//    auto funcs = _lst_timer.get_enable_timer();
-//    for (auto& item : funcs) {
-//        CoSchedule::get_instance()->create(item);
-//    }
-//
-//    return true;
-//}
-
 bool CoExecutor::on_execute()
 {
     shared_ptr<Coroutine> co;
@@ -135,7 +124,7 @@ bool CoExecutor::on_execute()
     _running_co = co;
     swap_context(&g_ctx_main, co->get_context());
     if (co->_status != CO_STATUS_SUSPEND && co->_status != CO_STATUS_FINISH) {
-        throw CoException(xxxx);
+        throw CoException(CO_ERROR_COROUTINE_EXCEPTION);
     }
 
     if (co->_status == CO_STATUS_FINISH) {
@@ -147,28 +136,25 @@ bool CoExecutor::on_execute()
 
 bool CoExecutor::get_ready_co(shared_ptr<Coroutine>& co)
 {
-    vector<shared_ptr<Coroutine>> global_cos;
     {
         lock_guard<mutex> lock(_mutex);
-        vector<shared_ptr<Coroutine>>::iterator iter;
-        if (!_lst_ready.pop_front(co)) {
-            if (get_global_co(global_cos)) {
-                for (int i = 0; i < (int)global_cos.size(); i++) {
-                    if (i == 0) {
-                        co = global_cos[i];
-                    } else {
-                        _lst_wait.push_back(global_cos[i]);
-                    }
-                }
-            } else {
-                return false;
-            }
+        if (_lst_ready.pop_front(co)) {
+            return true;
         }
     }
-    return true;
-}
 
-bool CoExecutor::get_global_co(int size, vector<shared_ptr<Coroutine>>& cos)
-{
-    return true;
+    vector<shared_ptr<Coroutine>> cos;
+    if (!CoSchedule::get_instance()->get_global_co(cos)) {
+        return false;
+    }
+
+    lock_guard<mutex> lock(_mutex);
+    for (auto& item : cos) {
+        if (item->_priority) {
+            _lst_ready.push_front(item);
+        } else {
+            _lst_ready.push_back(item);
+        }
+    }
+    return _lst_ready.pop_front(co);
 }

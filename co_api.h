@@ -31,13 +31,11 @@ public:
         return CoSchedule::get_instance()->set_timer(func, delay_ms, period_ms);
     }
 
-    // ??? 是否需要考虑协程线程外使用的情况
     static void sleep(int sleep_ms) {
-        if (check_in_co_thread()) {
-            CoSchedule::get_instance()->sleep(sleep_ms);
-        } else {
-            usleep(sleep_ms * 1000);
+        if (!check_in_co_thread()) {
+            throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
         }
+        CoSchedule::get_instance()->sleep(sleep_ms);
     }
 };
 

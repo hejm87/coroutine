@@ -21,4 +21,13 @@ inline int get_executor_count() {
     return count;
 }
 
+inline int get_stack_size() {
+    int stack_size = DEF_STACK_SIZE;
+    char* p = getenv("CO_STACK_SIZE");
+    if (p) {
+        stack_size = atoi(p);
+    }
+    return stack_size
+}
+
 #endif

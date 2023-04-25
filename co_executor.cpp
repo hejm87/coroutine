@@ -2,8 +2,8 @@
 #include <thread>
 
 #include "common/helper.h"
-#include "coroutine_executor.h"
-#include "coroutine_schedule.h"
+#include "co_executor.h"
+#include "co_schedule.h"
 
 using namespace std;
 

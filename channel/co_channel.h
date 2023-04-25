@@ -1,9 +1,8 @@
 #ifndef __CO_CHANNEL_H__
 #define __CO_CHANNEL_H__
 
-#include "co_mutex.h"
-#include "co_exception.h"
-#include "ring_queue.h"
+#include "../mutex/co_mutex.h"
+#include "../co_exception.h"
 
 template <class T>
 class CoChannel
@@ -39,7 +38,7 @@ public:
                 CoSchedule::get_instance()->yield([_mutex]() {
                     _mutex.unlock();
                 });
-                ??? 是否会出现channel关闭后唤醒
+                // ??? 是否会出现channel关闭后唤醒
                 _mutex.lock();
             } while (_queue.get_max_size() > _queue.get_size());
             _queue.push_back(obj);

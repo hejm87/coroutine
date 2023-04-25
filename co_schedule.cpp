@@ -1,11 +1,11 @@
-#include "coroutine_schedule.h"
+#include "co_schedule.h"
 
 using namespace std;
 
 CoSchedule::CoSchedule()
 {
     _is_running = false;
-    _stack_size = DEF_STACK_SIZE;
+    _stack_size = get_stack_size();
 
     _executor_count = get_executor_count();
     for (int i = 0; i < _executor_count; i++) {
@@ -13,6 +13,10 @@ CoSchedule::CoSchedule()
         _executors.push_back(ptr);
         ptr->run();
     }
+
+    _timer_thread = thread([this](){
+        run_timer();
+    });
 }
 
 CoSchedule::~CoSchedule()
@@ -21,6 +25,7 @@ CoSchedule::~CoSchedule()
     for (auto& item : _executors) {
         item->wait();
     }
+    _timer_thread.join();
 }
 
 void CoSchedule::create(const AnyFunc& func, bool priority)
@@ -47,14 +52,14 @@ CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority)
     if (!_lst_free.pop_front(co)) {
         throw CoException(CO_ERROR_NO_RESOURCE);
     }
-    if (check_in_co_thread()) {     // 协程线程
+    if (check_in_co_thread()) {     // 协锟斤拷锟竭筹拷
         CoChannel<Any> chan();
         co->_func = AnyFunc([func, chan] () {
             chan << func();
         });
         awaiter._external_thread = false;
         awaiter._wait_chan = chann;
-    } else {    // 非协程线程
+    } else {    // 锟斤拷协锟斤拷锟竭筹拷
         promise<Any> p;
         co->_func = AnyFunc([func, p] () {
             p.set_value(func());

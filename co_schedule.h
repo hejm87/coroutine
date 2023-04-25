@@ -31,11 +31,11 @@ public:
     void resume(std::shared_ptr<Coroutine> co);
 
     /*
-    º¯Êý¹¦ÄÜ£ºÉèÖÃ¶¨Ê±Æ÷
-    ²ÎÊý£º
-    func:   ¶¨Ê±Æ÷»Øµ÷º¯Êý
-    delay:  ÑÓ³ÙÖ´ÐÐÊ±¼ä£¨µ¥Î»£ººÁÃë£©
-    period: ÖÜÆÚÐÔÖ´ÐÐÖÜÈÕ£¨µ¥Î»£ººÁÃë£©£¬Ä¬ÈÏ²ÎÊýÎª0£¬Ö»Ö´ÐÐÒ»´Î 
+    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½Ã¶ï¿½Ê±ï¿½ï¿½
+    ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    func:   ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½
+    delay:  ï¿½Ó³ï¿½Ö´ï¿½ï¿½Ê±ï¿½ä£¨ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ë£©
+    period: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ï¿½ï¿½Õ£ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ë£©ï¿½ï¿½Ä¬ï¿½Ï²ï¿½ï¿½ï¿½Îª0ï¿½ï¿½Ö»Ö´ï¿½ï¿½Ò»ï¿½ï¿½ 
     */
     CoTimerId set_timer(const AnyFunc& func, int delay_ms, int period_ms = 0);
 
@@ -86,8 +86,8 @@ private:
     std::vector<std::shared_ptr<CoExecutor>>  _executors;
 
     std::condition_variable _cv;
-
-    std::mutex   _mutex;
+    std::mutex  _mutex;
+    std::thread _timer_thread;
 };
 
 #endif

@@ -1,6 +1,10 @@
 #include "co_schedule.h"
+#include "co_define.h"
 
 using namespace std;
+
+thread_local context_t*     g_ctx_main = NULL;
+thread_local CoExecutor*    g_co_executor = NULL;
 
 CoSchedule::CoSchedule()
 {

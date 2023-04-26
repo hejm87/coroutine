@@ -2,7 +2,8 @@
 #define __CO_LIST_H__
 
 #include <memory>
-#include "../coroutine.h"
+
+class Coroutine;
 
 class CoList
 {

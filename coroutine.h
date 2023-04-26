@@ -1,8 +1,5 @@
-//#ifndef __COROUTINE_H__
-//#define __COROUTINE_H__
-
-#ifndef __A_H__
-#define __A_H__
+#ifndef __COROUTINE_H__
+#define __COROUTINE_H__
 
 #include <memory>
 #include <future>
@@ -11,8 +8,6 @@
 #include "common/any.h"
 #include "common/any_func.h"
 #include "context/ucontext_handle.h"
-
-#include "co_schedule.h"
 
 // coroutine status
 enum {
@@ -44,7 +39,7 @@ public:
 
 		getcontext(&_ctx);
 
-		int size = CoSchedule::get_instance()->get_stack_size();
+		int size = get_stack_size();
 		_stack = malloc(size);
 
 		_ctx.uc_stack.ss_sp = _stack;
@@ -69,11 +64,11 @@ public:
 	}
 
 public:
-    int		_status;	// 协程状态
-	bool	_priority;	// 优先执行
+    int		_status;	// 协程状�?
+	bool	_priority;	// 优先执�??
 
-	AnyFunc _func;		// 协程执行函数
-	Any		_result;	// 协程执行结果
+	AnyFunc _func;		// 协程执�?�函�?
+	Any		_result;	// 协程执�?�结�?
 
 	CoParam	_param;
 

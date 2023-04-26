@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <memory>
 
-#include "coroutine.h"
+//#include "coroutine.h"
 
-inline bool check_in_co_thread() {
-    return _g_ctx_main ? true : false;
-}
+//inline bool check_in_co_thread() {
+//    return _g_ctx_main ? true : false;
+//}
 
 inline int get_executor_count() {
     int count;

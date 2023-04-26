@@ -6,9 +6,11 @@
 
 typedef ucontext_t context_t;
 
+extern thread_local context_t* g_ctx_main;
+
 void init_context()
 {
-    getcontext(&g_main_ctx);
+    getcontext(g_ctx_main);
 
     int size = CoroutineSchedule::get_instance()->get_stack_size();
     ctx.uc_stack.ss_sp = malloc(size);

@@ -1,4 +1,5 @@
 #include "co_list.h"
+#include "../coroutine.h"
 
 using namespace std;
 
@@ -74,7 +75,7 @@ bool CoList::remove(shared_ptr<Coroutine> node)
 
 void CoList::clear()
 {
-    // ??? 需要自行编写代码
+    // ??? 需要自行编写代�?
 }
 
 void CoList::init_list(shared_ptr<Coroutine> node)

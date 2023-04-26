@@ -6,12 +6,10 @@
 #include <exception>
 #include "co_define.h"
 #include "co_common.h"
-#include "co_executor.h"
 #include "common/any.h"
 #include "co_common/co_list.h"
 
-extern thread_local context_t*      g_ctx_main = NULL;
-extern thread_local CoExecutor*     g_co_executor = NULL;
+class CoExecutor;
 
 class CoSchedule
 {
@@ -47,14 +45,6 @@ public:
 
     bool is_set_end() {
         return _is_set_end;
-    }
-
-    bool set_stack_size(int size) {
-        _stack_size = size;
-    }
-
-    int get_stack_size() {
-        return _stack_size;
     }
 
 private:

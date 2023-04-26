@@ -28,7 +28,7 @@ CoSchedule::~CoSchedule()
     _timer_thread.join();
 }
 
-void CoSchedule::create(const AnyFunc& func, bool priority)
+void CoSchedule::create(const AnyFunc& func, bool priority) throw CoException
 {
     lock_guard<mutex> lock(_mutex);
     shared_ptr<Coroutine> co;
@@ -44,7 +44,7 @@ void CoSchedule::create(const AnyFunc& func, bool priority)
     }
 }
 
-CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority)
+CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority) throw CoException
 {
     lock_guard<mutex> lock(_mutex);
     shared_ptr<Coroutine> co;

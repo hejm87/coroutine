@@ -1,9 +1,11 @@
 #ifndef __COROUTINE_DEFINE_H__
 #define __COROUTINE_DEFINE_H__
 
+#include <memory>
 #include <future>
 #include "common/any.h"
 #include "channel/co_channel.h"
+#include "co_common/co_timer.h"
 
 // 默认协程栈大小
 const int DEF_STACK_SIZE = 1024 * 4;
@@ -27,16 +29,17 @@ public:
     }
 
 private:
-    bool            _external_thread;   // 外部线程调用（非协程线程）
-    future<Any>     _wait_future;
-    CoChannel<Any>  _wait_chan;
+    bool    _external_thread;   // 外部线程调用（非协程线程）
+    std::future<Any>    _wait_future;
+    CoChannel<Any>      _wait_chan;
 };
 
 class CoTimerId
 {
 friend class CoSchedule;
+friend class CoTimerList;
 private:
-    weak_ptr<CoTimer>   _ptr;
+    std::weak_ptr<CoTimer>   _ptr;
 };
 
 #endif

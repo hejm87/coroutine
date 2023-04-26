@@ -74,7 +74,7 @@ bool CoList::remove(shared_ptr<Coroutine> node)
 
 void CoList::clear()
 {
-    thinkpad±¾±¾ÓĞ´úÂë¿ÉÒÔ³­¹ıÀ´
+    // ??? éœ€è¦è‡ªè¡Œç¼–å†™ä»£ç 
 }
 
 void init_list(shared_ptr<Coroutine>& node)

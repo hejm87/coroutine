@@ -2,6 +2,7 @@
 #define __CO_MUTEX_H__
 
 #include <atomic>
+#include "../co_common/co_list.h"
 
 class CoMutex
 {
@@ -39,8 +40,8 @@ public:
     }
 
 private:
-    std::atomic _value;
-    CoList      _block_list;
+    std::atomic<int>    _value;
+    CoList              _block_list;
 };
 
 #endif

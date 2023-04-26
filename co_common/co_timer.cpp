@@ -1,4 +1,5 @@
 #include "co_timer.h"
+#include "../common/helper.h"
 
 vector<AnyFunc> CoTimerList::get_enable_timer()
 {
@@ -21,7 +22,7 @@ vector<AnyFunc> CoTimerList::get_enable_timer()
         if (item->_period_ms <= 0) {
             continue ;
         }
-        auto iter = _lst_timer.insert(make_pair(now_ms() + period_ms, item));
+        auto iter = _lst_timer.insert(make_pair(now_ms() + item->_period_ms, item));
         _lst_timer_ptr.insert(make_pair(item, iter));
     }
     return funcs;
@@ -31,7 +32,7 @@ CoTimerId CoTimerList::insert(AnyFunc func, int delay_ms, int period_ms)
 {
     auto ptr = shared_ptr<CoTimer>(new CoTimer);
     ptr->_func = func;
-    ptr->period_ms = period_ms;
+    ptr->_period_ms = period_ms;
 
     auto iter = _lst_timer.insert(make_pair(now_ms() + delay_ms, ptr));
     _lst_timer_ptr.insert(make_pair(ptr, iter));
@@ -44,7 +45,7 @@ CoTimerId CoTimerList::insert(AnyFunc func, int delay_ms, int period_ms)
 bool CoTimerList::remove(const CoTimerId& timer_id)
 {
     auto ret = false;
-    if (auto ptr = timer._ptr.lock()) {
+    if (auto ptr = timer_id._ptr.lock()) {
         auto iter = _lst_timer_ptr.find(ptr);
         if (iter != _lst_timer_ptr.end()) {
             _lst_timer.erase(iter);

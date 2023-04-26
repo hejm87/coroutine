@@ -6,7 +6,7 @@
 #include <memory>
 #include <exception>
 #include <list>
-#include <multimap>
+#include <map>
 
 #include "coroutine.h"
 #include "co_define.h"
@@ -38,7 +38,7 @@ private:
 private:
     CoList      _lst_wait;      // 等待队列
     CoList      _lst_ready;     // 就绪队列
-    CoTimerList _lst_timer;     // 定时器队列
+    CoTimerList _lst_timer;     // 定时器队�?
 
     std::shared_ptr<Coroutine>   _running_co;
 

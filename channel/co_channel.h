@@ -2,6 +2,7 @@
 #define __CO_CHANNEL_H__
 
 #include "../mutex/co_mutex.h"
+#include "../co_common/co_list.h"
 #include "../co_exception.h"
 
 template <class T>

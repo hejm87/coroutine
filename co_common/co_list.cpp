@@ -13,7 +13,7 @@ void CoList::push_back(shared_ptr<Coroutine> node)
     append(node);
 }
 
-bool CoList::pop_front(shared_ptr<Coroutine>& node)
+bool CoList::pop_front(shared_ptr<Coroutine> node)
 {
     if (is_empty()) {
         return false;
@@ -21,15 +21,15 @@ bool CoList::pop_front(shared_ptr<Coroutine>& node)
     return remove(_header);
 }
 
-bool CoList::pop_back(shared_ptr<Coroutine>& node)
+bool CoList::pop_back(shared_ptr<Coroutine> node)
 {
     if (is_empty()) {
         return false;
     }
-    return remove(_header->prev);
+    return remove(_header->_prev);
 }
 
-bool CoList::front(shared_ptr<Coroutine>& node)
+bool CoList::front(shared_ptr<Coroutine> node)
 {
     if (is_empty()) {
         return false;
@@ -38,34 +38,34 @@ bool CoList::front(shared_ptr<Coroutine>& node)
     return true;
 }
 
-bool CoList::back(shared_ptr<Coroutine>& node)
+bool CoList::back(shared_ptr<Coroutine> node)
 {
     if (is_empty()) {
         return false;
     }
-    node = _header->prev;
+    node = _header->_prev;
     return true;
 }
 
 bool CoList::remove(shared_ptr<Coroutine> node)
 {
-    if (!node->prev || !node->next) {
+    if (!node->_prev || !node->_next) {
         return false;
     }
 
-    auto prev = node->prev;
-    auto next = node->next;
+    auto prev = node->_prev;
+    auto next = node->_next;
 
-    node->prev.reset();
-    node->next.reset();
+    node->_prev.reset();
+    node->_next.reset();
 
     if (prev == next) {
         _header.reset();
         return true;
     }
 
-    prev->next = next;
-    next->prev = prev;
+    prev->_next = next;
+    next->_prev = prev;
     if (_header == node) {
         _header = next;
     }
@@ -77,29 +77,29 @@ void CoList::clear()
     // ??? 需要自行编写代码
 }
 
-void init_list(shared_ptr<Coroutine>& node)
+void CoList::init_list(shared_ptr<Coroutine> node)
 {
-    node->prev = node;
-    node->next = node;
+    node->_prev = node;
+    node->_next = node;
     _header = node;
 }
 
-void append(shared_ptr<Coroutine> node)
+void CoList::append(shared_ptr<Coroutine> node)
 {
     if (!_header) {
         init_list(node);
         return ;
     }
 
-    auto last = _header->prev;
+    auto last = _header->_prev;
 
-    node->next = _header;
-    node->prev = _header->prev;
+    node->_next = _header;
+    node->_prev = _header->_prev;
 
-    last->next = node;
+    last->_next = node;
 
-    _header->prev = node;
-    if (_header == _header->next) {
-        _header->next = node;
+    _header->_prev = node;
+    if (_header == _header->_next) {
+        _header->_next = node;
     }
 }

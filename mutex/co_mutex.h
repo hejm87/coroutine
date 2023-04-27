@@ -17,7 +17,7 @@ public:
             if (_value.compare_exchange_strong(0, 1)) {
                 return ;
             }
-            auto co = CoSchendule::get_instance()->get_cur_co();
+            auto co = CoSchedule::get_instance()->get_cur_co();
             if (is_wake_up) {
                 _block_list.push_back(co);
             } else {

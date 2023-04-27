@@ -4,7 +4,7 @@
 #include <ucontext.h>
 #include "../co_define.h"
 
-typedef context_t ucontext_t;
+typedef ucontext_t context_t;
 
 void init_context()
 {

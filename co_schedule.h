@@ -17,7 +17,7 @@ class CoSchedule
 {
 friend class CoChannel;
 public:
-    CoSchedule* get_instance() {
+    static CoSchedule* get_instance() {
         static CoSchedule instance;
         return &instance;
     }

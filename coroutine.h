@@ -1,5 +1,8 @@
-#ifndef __COROUTINE_H__
-#define __COROUTINE_H__
+//#ifndef __COROUTINE_H__
+//#define __COROUTINE_H__
+
+#ifndef __A_H__
+#define __A_H__
 
 #include <memory>
 #include <future>
@@ -8,6 +11,8 @@
 #include "common/any.h"
 #include "common/any_func.h"
 #include "context/ucontext_handle.h"
+
+#include "co_schedule.h"
 
 // coroutine status
 enum {
@@ -36,7 +41,6 @@ class Coroutine
 public:
     Coroutine() {
 		_status = CO_STATUS_IDLE;	
-		_next_time = 0;
 
 		getcontext(&_ctx);
 

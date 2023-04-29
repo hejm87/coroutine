@@ -15,11 +15,11 @@ public:
     void push_front(std::shared_ptr<Coroutine> node);
     void push_back(std::shared_ptr<Coroutine> node);
 
-    bool pop_front(std::shared_ptr<Coroutine> node);
-    bool pop_back(std::shared_ptr<Coroutine> node);
+    void pop_front();
+    void pop_back();
 
-    bool front(std::shared_ptr<Coroutine> node);
-    bool back(std::shared_ptr<Coroutine> node);
+    bool front(std::shared_ptr<Coroutine>& node);
+    bool back(std::shared_ptr<Coroutine>& node);
 
     bool remove(std::shared_ptr<Coroutine> node);
     void clear();

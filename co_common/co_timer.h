@@ -16,6 +16,12 @@ public:
     int     _period_ms;
 };
 
+class CoTimerId
+{
+private:
+    std::weak_ptr<CoTimer>   _ptr;
+};
+
 class CoTimerList
 {
 public:

@@ -14,7 +14,7 @@ void CoList::push_back(shared_ptr<Coroutine> node)
     append(node);
 }
 
-bool CoList::pop_front(shared_ptr<Coroutine> node)
+void CoList::pop_front()
 {
     if (is_empty()) {
         return false;
@@ -22,7 +22,7 @@ bool CoList::pop_front(shared_ptr<Coroutine> node)
     return remove(_header);
 }
 
-bool CoList::pop_back(shared_ptr<Coroutine> node)
+void CoList::pop_back()
 {
     if (is_empty()) {
         return false;
@@ -30,7 +30,7 @@ bool CoList::pop_back(shared_ptr<Coroutine> node)
     return remove(_header->_prev);
 }
 
-bool CoList::front(shared_ptr<Coroutine> node)
+bool CoList::front(shared_ptr<Coroutine>& node)
 {
     if (is_empty()) {
         return false;
@@ -39,7 +39,7 @@ bool CoList::front(shared_ptr<Coroutine> node)
     return true;
 }
 
-bool CoList::back(shared_ptr<Coroutine> node)
+bool CoList::back(shared_ptr<Coroutine>& node)
 {
     if (is_empty()) {
         return false;
@@ -75,7 +75,7 @@ bool CoList::remove(shared_ptr<Coroutine> node)
 
 void CoList::clear()
 {
-    // ??? 需要自行编写代�?
+    // ??? 需要自行编写代�?
 }
 
 void CoList::init_list(shared_ptr<Coroutine> node)

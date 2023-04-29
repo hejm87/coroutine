@@ -31,6 +31,8 @@ struct CoParam
 	Any		value;
 };
 
+class CoExecutor;
+
 class Coroutine
 {
 public:

@@ -3,8 +3,8 @@
 
 using namespace std;
 
-thread_local context_t*     g_ctx_main = NULL;
-thread_local CoExecutor*    g_co_executor = NULL;
+thread_local context_t* g_ctx_main = NULL;
+thread_local shared_ptr<CoExecutor> g_co_executor;
 
 CoSchedule::CoSchedule()
 {
@@ -161,4 +161,9 @@ void CoSchedule::run_timer()
             create(item, true);
         }
     }
+}
+
+shared_ptr<Coroutine> CoSchedule::get_cur_co()
+{
+    g_co_executor->get_running_co();
 }

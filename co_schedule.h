@@ -4,12 +4,19 @@
 #include <mutex>
 #include <atomic>
 #include <exception>
-#include "co_define.h"
+#include <vector>
 #include "co_common.h"
+#include "co_exception.h"
 #include "common/any.h"
 #include "co_common/co_list.h"
+#include "co_common/co_timer.h"
 
+class Coroutine;
+class CoTimerId;
+class CoAwaiter;
 class CoExecutor;
+
+extern thread_local shared_ptr<CoExecutor> g_co_executor;
 
 class CoSchedule
 {
@@ -20,7 +27,7 @@ public:
         return &instance;
     }
 
-    void create(const AnyFunc& func, bool priority = false) throw CoException;
+    void create(const AnyFunc& func, bool priority = false) throw(CoException);
 
     CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false);
 
@@ -41,7 +48,13 @@ public:
 
     bool stop_timer(const CoTimerId& timer_id);
 
+    std::shared_ptr<Coroutine> get_cur_co();
+
     std::vector<std::shared_ptr<Coroutine>> get_global_co(int size = 1);
+
+    void free(shared_ptr<Coroutine> co) {
+        _lst_free.push_back(co);
+    }
 
     bool is_set_end() {
         return _is_set_end;
@@ -55,11 +68,10 @@ private:
 
     bool get_free_co(std::shared_ptr<Coroutine> &co) {
         lock_guard<mutex> lock(_mutex);
-        return _lst_free.pop_front(co);
-    }
-
-    void free(shared_ptr<Coroutine> co) {
-        _lst_free.push_back(co);
+        if (!_lst_free.front(co)) {
+            return false;
+        }
+        _lst_free.pop_front();
     }
 
 private:

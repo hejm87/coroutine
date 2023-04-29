@@ -1,12 +1,11 @@
-#ifndef __CO_TIMER_LIST_H__
-#define __CO_TIMER_LIST_H__
+#ifndef __CO_TIMER_H__
+#define __CO_TIMER_H__
 
 #include <map>
 #include <unordered_map>
 #include <vector>
 #include <memory>
 
-#include "../co_define.h"
 #include "../common/any_func.h"
 
 class CoTimer
@@ -18,6 +17,7 @@ public:
 
 class CoTimerId
 {
+friend class CoTimerList;
 private:
     std::weak_ptr<CoTimer>   _ptr;
 };

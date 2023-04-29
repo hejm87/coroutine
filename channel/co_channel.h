@@ -1,6 +1,7 @@
 #ifndef __CO_CHANNEL_H__
 #define __CO_CHANNEL_H__
 
+#include "../common/ring_queue.h"
 #include "../mutex/co_mutex.h"
 #include "../co_common/co_list.h"
 #include "../co_exception.h"
@@ -12,10 +13,12 @@ public:
     CoChannel(int size = 0);
     ~CoChannel();
 
-    void operator>>(T& obj) throw CoException {
-        _mutex.lock();
-        if (!_closed) {
-            throw CoException(CO_ERROR_CHANNEL_CLOSE);
+    void operator>>(T& obj) throw(CoException) {
+        {
+            _mutex.lock();
+            if (!_closed) {
+                throw CoException(CO_ERROR_CHANNEL_CLOSE);
+            }
         }
         if (_use_cache) {
             push_with_cache(obj);
@@ -24,8 +27,18 @@ public:
         }
     }
 
-    void operator<<(const T& obj) throw CoException {
-        ;
+    void operator<<(const T& obj) throw(CoException) {
+        {
+            _mutex.lock();
+            if (!_closed) {
+                throw CoException(CO_ERROR_CHANNEL_CLOSE);
+            }
+        }
+        if (_use_cache) {
+            _queue.pop_with_cache(obj);
+        } else {
+            _queue.pop_without_cache(obj);
+        }
     }
 
     void push_with_cache(const T& obj) {
@@ -52,7 +65,7 @@ public:
         _mutex.unlock();
     }
 
-    void push_without_cache(const T& obj) throw CoException {
+    void push_without_cache(const T& obj) throw(CoException) {
         _mutex.lock();
         if (_lst_recv_waits.size() > 0) {
             shared_ptr<Coroutine> co;
@@ -78,7 +91,7 @@ public:
         }
     }
 
-    bool pop_with_cache(T& obj) {
+    void pop_with_cache(T& obj) {
         _mutex.lock();
         if (_queue.size() > 0) {
             _queue.pop_front(obj);

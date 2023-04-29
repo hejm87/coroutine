@@ -16,18 +16,16 @@ void CoList::push_back(shared_ptr<Coroutine> node)
 
 void CoList::pop_front()
 {
-    if (is_empty()) {
-        return false;
-    }
-    return remove(_header);
+	if (!is_empty()) {
+		remove(_header);
+	}
 }
 
 void CoList::pop_back()
 {
-    if (is_empty()) {
-        return false;
-    }
-    return remove(_header->_prev);
+	if (!is_empty()) {
+		remove(_header->_prev);
+	}
 }
 
 bool CoList::front(shared_ptr<Coroutine>& node)

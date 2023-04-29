@@ -2,6 +2,7 @@
 #define __ANY_FUNC_H__
 
 #include <functional>
+#include <exception>
 #include "any.h"
 #include "../co_exception.h"
 
@@ -36,9 +37,9 @@ public:
 		_func = obj._func;
 	}
 	
-	Any operator()() {
+	Any operator()() throw(std::exception) {
 		if (!_set_func) {
-			throw CoException(CO_ERROR_PACKAGE_FUNCTION);
+			throw std::runtime_error("package function not exists");
 		}
 		return _func();
 	}

@@ -8,15 +8,16 @@
 #define DEF_KV(err) {err, #err}
 
 const int CO_ERROR_UNKNOW = 1;
-const int CO_ERROR_NO_RESOURCE = 2;           // ��Դ����
-const int CO_ERROR_NO_EXIST_DATA = 3;         // û������
-const int CO_ERROR_CHANNEL_CLOSE = 4;         // channel�ѹر�
-const int CO_ERROR_SCHEDULE = 5;              // Э�̵���ʧ��
-const int CO_ERROR_NOT_IN_CO_THREAD = 6;      // ������Э�̹����߳�
-const int CO_ERROR_INVALID_CO_EXECUTOR = 7;   // ��Ч��Э�̵�����
-const int CO_ERROR_COROUTINE_EXCEPTION = 8;   // Э����Ϣ�쳣
-const int CO_ERROR_SET_TIMER = 9;             // ���ö�ʱ���쳣
-const int CO_ERROR_PACKAGE_FUNCTION = 10;     // ��װ�����쳣
+const int CO_ERROR_NO_RESOURCE = 2;           // 缺乏资源
+const int CO_ERROR_NO_EXIST_DATA = 3;         // 不存在数据
+const int CO_ERROR_CHANNEL_CLOSE = 4;         // channel已关闭
+const int CO_ERROR_SCHEDULE = 5;              // 调度失败
+const int CO_ERROR_NOT_IN_CO_THREAD = 6;      // 不在协程线程
+const int CO_ERROR_INVALID_CO_EXECUTOR = 7;   // 无效协程调度器
+const int CO_ERROR_COROUTINE_EXCEPTION = 8;   // 协程异常
+const int CO_ERROR_SET_TIMER = 9;             // 设置定时器失败
+const int CO_ERROR_PACKAGE_FUNCTION = 10;     // 无效处理函数
+const int CO_ERROR_UNLOCK_EXCEPTION = 11;     // 解锁错误
 
 static map<int, string> s_errors = 
 {

@@ -8,11 +8,9 @@
 #include <list>
 #include <map>
 
-#include "coroutine.h"
 #include "co_define.h"
-#include "co_executor.h"
 
-class CoSchedule;
+class Coroutine;
 
 class CoExecutor
 {
@@ -21,13 +19,18 @@ public:
     ~CoExecutor();
 
     bool run();
-    bool wait();
+    void stop(bool wait = true);
+    bool wait_util_stop();
 
 	void put(std::shared_ptr<Coroutine> coroutine);
 
     void sleep(int sleep_ms);
     void yield(std::function<void()> do_after = nullptr);
-    void resume(std::shared_ptr<Coroutine> coroutine) throw CoException;
+    void resume(std::shared_ptr<Coroutine> co) throw(CoException);
+
+    std::shared_ptr<Coroutine> get_running_co();
+
+    void set_end();
 
 private:
     bool on_timer();
@@ -38,7 +41,7 @@ private:
 private:
     CoList      _lst_wait;      // 等待队列
     CoList      _lst_ready;     // 就绪队列
-    CoTimerList _lst_timer;     // 定时器队�?
+    CoTimerList _lst_timer;     // 定时器队�?
 
     std::shared_ptr<Coroutine>   _running_co;
 

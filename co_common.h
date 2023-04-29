@@ -1,14 +1,16 @@
 #ifndef __CO_COMMON_H__
 #define __CO_COMMON_H__
 
-#include <stdlib.h>
+#include <unistd.h>
 #include <memory>
 
-//#include "coroutine.h"
+#include "context/ucontext_handle.h"
 
-//inline bool check_in_co_thread() {
-//    return _g_ctx_main ? true : false;
-//}
+const int DEF_STACK_SIZE = 4 * 1024;
+
+inline bool is_in_co_thread() {
+    return g_ctx_main ? true : false;
+}
 
 inline int get_executor_count() {
     int count;
@@ -27,7 +29,7 @@ inline int get_stack_size() {
     if (p) {
         stack_size = atoi(p);
     }
-    return stack_size
+    return stack_size;
 }
 
 #endif

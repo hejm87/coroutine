@@ -48,8 +48,8 @@ bool CoTimerList::remove(const CoTimerId& timer_id)
     if (auto ptr = timer_id._ptr.lock()) {
         auto iter = _lst_timer_ptr.find(ptr);
         if (iter != _lst_timer_ptr.end()) {
-            _lst_timer.erase(iter);
-            _lst_timer_ptr.erase(ptr);
+            _lst_timer.erase(iter->second);
+            _lst_timer_ptr.erase(iter);
             ret = true;
         }
     }

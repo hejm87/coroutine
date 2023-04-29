@@ -2,6 +2,7 @@
 #include <thread>
 
 #include "common/helper.h"
+#include "coroutine.h"
 #include "co_executor.h"
 #include "co_schedule.h"
 
@@ -23,7 +24,7 @@ bool CoExecutor::run()
 {
     _thread_handle = thread([this]() {
         init_context();
-        while (!CoSchedule::get_instance()->is_set_end()) {
+        while (!_is_set_end) {
             if (!on_execute()) {
                 sleep(1);
             }
@@ -32,7 +33,15 @@ bool CoExecutor::run()
     });
 }
 
-bool CoExecutor::stop()
+void CoExecutor::stop(bool wait)
+{
+    set_end();
+    if (wait) {
+        wait_util_stop();
+    }
+}
+
+bool CoExecutor::wait_util_stop()
 {
     if (!_is_running) {
         return false;
@@ -44,23 +53,22 @@ bool CoExecutor::stop()
 void CoExecutor::put(shared_ptr<Coroutine> co)
 {
     lock_guard<mutex> lock(_mutex);
-    _list_ready.push_back(co);
+    _lst_ready.push_back(co);
 }
 
 void CoExecutor::sleep(int sleep_ms)
 {
     if (sleep_ms <= 0) {
-        return 0;
+        return ;
     }
-
     lock_guard<mutex> lock(_mutex);
     auto co = _running_co;
     auto delay = now_ms() + sleep_ms;
-    _lst_timer[delay] = [this, co]() {
+    _lst_timer.insert([this, co]() {
         lock_guard<mutex> lock(_mutex);
         _lst_wait.remove(co);
         _lst_ready.push_front(co);
-    };
+    }, delay, 0);
 }
 
 void CoExecutor::yield(function<void()> do_after)
@@ -69,10 +77,10 @@ void CoExecutor::yield(function<void()> do_after)
     if (do_after) {
         do_after();
     }
-    swap_context(_running_co->get_context(), &g_ctx_main);
+    swap_context(_running_co->get_context(), g_ctx_main);
 }
 
-void CoExecutor::resume(shared_ptr<Coroutine> co)
+void CoExecutor::resume(shared_ptr<Coroutine> co) throw(CoException)
 {
     lock_guard<mutex> lock(_mutex);
     if (!_lst_wait.remove(co)) {
@@ -81,38 +89,48 @@ void CoExecutor::resume(shared_ptr<Coroutine> co)
     _lst_ready.push_front(co);
 }
 
-CoTimerId CoExecutor::set_timer(const AnyFunc& func, int delay_ms, int period_ms)
+shared_ptr<Coroutine> CoExecutor::get_running_co()
 {
-    lock_guard<mutex> lock(_mutex);
-
-    auto timer_ptr = shared_ptr<CoTimer>(new CoTimer);
-    timer_ptr->timer_func = func;
-    timer_ptr->period_ms  = period_ms;
-
-    auto result = _lst_timer.insert(now_ms() + delay_ms, timer_ptr);
-    if (!result.first) {
-        throw CoException(CO_ERROR_SET_TIMER);
-    }
-
-    CoTimerId timer_id;
-    timer_id._ptr = timer_ptr;
-    return timer_id;
+    return _running_co;
 }
 
-bool CoExecutor::stop_timer(const CoTimer& timer)
+void CoExecutor::set_end()
 {
-    auto ret = false;
-    if (auto ptr = timer._ptr.lock()) {
-        lock_guard<mutex> lock(_mutex);
-        auto iter = _lst_timer_ptr.find(ptr);
-        if (iter != _lst_timer_ptr) {
-            _lst_timer.erase(iter);
-            _lst_timer.ptr.erase(ptr);
-            ret = true;
-        }
-    }
-    return ret;
+    _is_set_end = true;
 }
+
+//CoTimerId CoExecutor::set_timer(const AnyFunc& func, int delay_ms, int period_ms)
+//{
+//    lock_guard<mutex> lock(_mutex);
+//
+//    auto timer_ptr = shared_ptr<CoTimer>(new CoTimer);
+//    timer_ptr->timer_func = func;
+//    timer_ptr->period_ms  = period_ms;
+//
+//    auto result = _lst_timer.insert(now_ms() + delay_ms, timer_ptr);
+//    if (!result.first) {
+//        throw CoException(CO_ERROR_SET_TIMER);
+//    }
+//
+//    CoTimerId timer_id;
+//    timer_id._ptr = timer_ptr;
+//    return timer_id;
+//}
+//
+//bool CoExecutor::stop_timer(const CoTimer& timer)
+//{
+//    auto ret = false;
+//    if (auto ptr = timer._ptr.lock()) {
+//        lock_guard<mutex> lock(_mutex);
+//        auto iter = _lst_timer_ptr.find(ptr);
+//        if (iter != _lst_timer_ptr) {
+//            _lst_timer.erase(iter);
+//            _lst_timer.ptr.erase(ptr);
+//            ret = true;
+//        }
+//    }
+//    return ret;
+//}
 
 bool CoExecutor::on_execute()
 {
@@ -122,7 +140,7 @@ bool CoExecutor::on_execute()
     }
 
     _running_co = co;
-    swap_context(&g_ctx_main, co->get_context());
+    swap_context(g_ctx_main, co->get_context());
     if (co->_status != CO_STATUS_SUSPEND && co->_status != CO_STATUS_FINISH) {
         throw CoException(CO_ERROR_COROUTINE_EXCEPTION);
     }
@@ -138,13 +156,15 @@ bool CoExecutor::get_ready_co(shared_ptr<Coroutine>& co)
 {
     {
         lock_guard<mutex> lock(_mutex);
-        if (_lst_ready.pop_front(co)) {
+        if (!_lst_ready.is_empty()) {
+            _lst_ready.front(co);
+            _lst_ready.pop_front();
             return true;
         }
     }
 
-    vector<shared_ptr<Coroutine>> cos;
-    if (!CoSchedule::get_instance()->get_global_co(cos)) {
+    auto cos = CoSchedule::get_instance()->get_global_co();
+    if (cos.size() == 0) {
         return false;
     }
 
@@ -156,5 +176,7 @@ bool CoExecutor::get_ready_co(shared_ptr<Coroutine>& co)
             _lst_ready.push_back(item);
         }
     }
-    return _lst_ready.pop_front(co);
+    _lst_ready.front(co);
+    _lst_ready.pop_front();
+    return true;
 }

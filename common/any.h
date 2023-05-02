@@ -29,6 +29,12 @@ struct Any
         return m_tpIndex == type_index(typeid(U));
     }
 
+    void Reset() {
+        if (bool(m_ptr)) {
+            m_ptr.reset();
+        }
+    }
+
     //将Any转换为实际的类型
     template<class U>
     U& AnyCast()

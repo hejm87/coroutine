@@ -13,17 +13,17 @@ public:
     template <typename T>
     T await() {
         Any obj;
-        if (is_in_co_thread() == true) {
-            obj = _wait_future.wait();
-        } else {
-            _wait_chan >> obj;
-        }
+//        if (is_in_co_thread() == true) {
+//            obj = _wait_future.wait();
+//        } else {
+//            _wait_chan >> obj;
+//        }
         return obj.AnyCast<T>();
     }
 
 private:
     std::future<Any>    _wait_future;
-    CoChannel<Any>      _wait_chan;
+//    CoChannel<Any>      _wait_chan;
 };
 
 #endif

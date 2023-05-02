@@ -20,7 +20,6 @@ extern thread_local shared_ptr<CoExecutor> g_co_executor;
 
 class CoSchedule
 {
-friend class CoChannel;
 public:
     static CoSchedule* get_instance() {
         static CoSchedule instance;

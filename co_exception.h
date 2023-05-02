@@ -8,16 +8,17 @@
 #define DEF_KV(err) {err, #err}
 
 const int CO_ERROR_UNKNOW = 1;
-const int CO_ERROR_NO_RESOURCE = 2;           // 缺乏资源
-const int CO_ERROR_NO_EXIST_DATA = 3;         // 不存在数据
-const int CO_ERROR_CHANNEL_CLOSE = 4;         // channel已关闭
-const int CO_ERROR_SCHEDULE = 5;              // 调度失败
-const int CO_ERROR_NOT_IN_CO_THREAD = 6;      // 不在协程线程
-const int CO_ERROR_INVALID_CO_EXECUTOR = 7;   // 无效协程调度器
-const int CO_ERROR_COROUTINE_EXCEPTION = 8;   // 协程异常
-const int CO_ERROR_SET_TIMER = 9;             // 设置定时器失败
-const int CO_ERROR_PACKAGE_FUNCTION = 10;     // 无效处理函数
-const int CO_ERROR_UNLOCK_EXCEPTION = 11;     // 解锁错误
+const int CO_ERROR_PARAM_INVALID = 2;         // 无效参数
+const int CO_ERROR_NO_RESOURCE = 3;           // 缺乏资源
+const int CO_ERROR_NO_EXIST_DATA = 4;         // 不存在数据
+const int CO_ERROR_CHANNEL_CLOSE = 5;         // channel已关闭
+const int CO_ERROR_SCHEDULE = 6;              // 调度失败
+const int CO_ERROR_NOT_IN_CO_THREAD = 7;      // 不在协程线程
+const int CO_ERROR_INVALID_CO_EXECUTOR = 8;   // 无效协程调度器
+const int CO_ERROR_COROUTINE_EXCEPTION = 9;   // 协程异常
+const int CO_ERROR_SET_TIMER = 10;             // 设置定时器失败
+const int CO_ERROR_PACKAGE_FUNCTION = 11;     // 无效处理函数
+const int CO_ERROR_UNLOCK_EXCEPTION = 12;     // 解锁错误
 
 static map<int, string> s_errors = 
 {

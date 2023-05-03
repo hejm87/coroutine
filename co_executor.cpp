@@ -23,7 +23,7 @@ CoExecutor::~CoExecutor()
 bool CoExecutor::run()
 {
     _thread_handle = thread([this]() {
-        init_context();
+        g_ctx_handle->init_context();
         while (!_is_set_end) {
             if (!on_execute()) {
                 sleep(1);
@@ -77,7 +77,7 @@ void CoExecutor::yield(function<void()> do_after)
     if (do_after) {
         do_after();
     }
-    swap_context(_running_co->get_context(), g_ctx_main);
+    g_ctx_handle->swap_context(_running_co->get_context(), g_ctx_main);
 }
 
 void CoExecutor::resume(shared_ptr<Coroutine> co) throw(CoException)
@@ -99,39 +99,6 @@ void CoExecutor::set_end()
     _is_set_end = true;
 }
 
-//CoTimerId CoExecutor::set_timer(const AnyFunc& func, int delay_ms, int period_ms)
-//{
-//    lock_guard<mutex> lock(_mutex);
-//
-//    auto timer_ptr = shared_ptr<CoTimer>(new CoTimer);
-//    timer_ptr->timer_func = func;
-//    timer_ptr->period_ms  = period_ms;
-//
-//    auto result = _lst_timer.insert(now_ms() + delay_ms, timer_ptr);
-//    if (!result.first) {
-//        throw CoException(CO_ERROR_SET_TIMER);
-//    }
-//
-//    CoTimerId timer_id;
-//    timer_id._ptr = timer_ptr;
-//    return timer_id;
-//}
-//
-//bool CoExecutor::stop_timer(const CoTimer& timer)
-//{
-//    auto ret = false;
-//    if (auto ptr = timer._ptr.lock()) {
-//        lock_guard<mutex> lock(_mutex);
-//        auto iter = _lst_timer_ptr.find(ptr);
-//        if (iter != _lst_timer_ptr) {
-//            _lst_timer.erase(iter);
-//            _lst_timer.ptr.erase(ptr);
-//            ret = true;
-//        }
-//    }
-//    return ret;
-//}
-
 bool CoExecutor::on_execute()
 {
     shared_ptr<Coroutine> co;
@@ -140,7 +107,7 @@ bool CoExecutor::on_execute()
     }
 
     _running_co = co;
-    swap_context(g_ctx_main, co->get_context());
+    g_ctx_handle->swap_context(g_ctx_main, co->get_context());
     if (co->_status != CO_STATUS_SUSPEND && co->_status != CO_STATUS_FINISH) {
         throw CoException(CO_ERROR_COROUTINE_EXCEPTION);
     }
@@ -178,5 +145,6 @@ bool CoExecutor::get_ready_co(shared_ptr<Coroutine>& co)
     }
     _lst_ready.front(co);
     _lst_ready.pop_front();
+    co->_co_executor = shared_from_this();
     return true;
 }

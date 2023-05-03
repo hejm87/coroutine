@@ -1,6 +1,7 @@
 #ifndef __CO_LIST_H__
 #define __CO_LIST_H__
 
+#include <algorithm>
 #include <memory>
 
 class Coroutine;
@@ -10,6 +11,17 @@ class CoList
 public:
     CoList() {
         _size = 0;
+    }
+
+    CoList(CoList&& obj) {
+        std::swap(_header, obj._header);
+        std::swap(_size, obj._size);
+    }
+
+    CoList& operator=(CoList&& obj) {
+        std::swap(_header, obj._header);
+        std::swap(_size, obj._size);
+        return *this;
     }
 
     void push_front(std::shared_ptr<Coroutine> node);

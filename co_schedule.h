@@ -4,6 +4,8 @@
 #include <mutex>
 #include <atomic>
 #include <exception>
+#include <thread>
+#include <condition_variable>
 #include <vector>
 #include "co_common.h"
 #include "co_exception.h"
@@ -28,7 +30,7 @@ public:
 
     void create(const AnyFunc& func, bool priority = false) throw(CoException);
 
-    CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false);
+    CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false) throw(CoException);
 
     void sleep(int sleep_ms);
 

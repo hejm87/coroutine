@@ -40,11 +40,11 @@ public:
         return _cur_size == 0 ? true : false;
     }
 
-    int get_size() {
+    int size() {
         return (int)_queue.size();
     }
 
-    int get_cur_size() {
+    int cur_size() {
         return _cur_size;
     }
 

@@ -7,7 +7,8 @@
 
 #include "common/any.h"
 #include "common/any_func.h"
-#include "context/ucontext_handle.h"
+#include "context/co_context.h"
+#include "co_schedule.h"
 
 // coroutine status
 enum {
@@ -31,33 +32,23 @@ struct CoParam
 	Any		value;
 };
 
-class CoExecutor;
-
-class Coroutine
+class Coroutine : std::enable_shared_from_this<Coroutine>
 {
 public:
     Coroutine() {
 		_status = CO_STATUS_IDLE;	
-
-		getcontext(&_ctx);
-
-		int size = get_stack_size();
-		_stack = malloc(size);
-
-		_ctx.uc_stack.ss_sp = _stack;
-		_ctx.uc_stack.ss_size  = size;
-		_ctx.uc_stack.ss_flags = 0;
+		_ctx = g_ctx_handle->create_context(Coroutine::co_run, shared_from_this());
 	}
     ~Coroutine() {
-		free(_stack);	
+		g_ctx_handle->release_context(_ctx);
 	}
 
 	void set_func(const AnyFunc& f) {
 		_func = f;
 	}
 
-    context_t* get_context() {
-        return &_ctx;
+    co_context_t* get_context() {
+        return _ctx;
     } 
 
     void run() {
@@ -65,12 +56,20 @@ public:
 		_status = CO_STATUS_FINISH;
 	}
 
-public:
-    int		_status;	// 协程状�?
-	bool	_priority;	// 优先执�??
+	static void co_run(std::shared_ptr<void> ptr) {
+		auto co_ptr = std::static_pointer_cast<Coroutine>(ptr);
+		while (!CoSchedule::get_instance()->is_set_end()) {
+			co_ptr->run();
+			CoSchedule::get_instance()->yield();
+		}
+	}
 
-	AnyFunc _func;		// 协程执�?�函�?
-	Any		_result;	// 协程执�?�结�?
+public:
+    int		_status;	// 协程状态
+	bool	_priority;	// 协程执行优先级
+
+	AnyFunc _func;		// 协程执行函数
+	Any		_result;	// 协程执行结果
 
 	CoParam	_param;
 
@@ -80,9 +79,7 @@ public:
 	weak_ptr<CoExecutor>	_co_executor;
 
 private:
-    context_t	_ctx;
-
-	void*		_stack;
+    co_context_t*	_ctx;
 };
 
 #endif

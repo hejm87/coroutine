@@ -4,6 +4,8 @@
 #include "../common/ring_queue.h"
 #include "../mutex/co_mutex.h"
 #include "../co_common/co_list.h"
+#include "../coroutine.h"
+#include <algorithm>
 #include "../co_schedule.h"
 #include "../co_exception.h"
 
@@ -24,6 +26,25 @@ public:
         }
     }
 
+    CoChannel(CoChannel&& obj) {
+        std::swap(_closed, obj._closed);
+        std::swap(_use_cache, obj._use_cache);
+        std::swap(_lst_send_waits, obj._lst_send_waits);
+        std::swap(_lst_recv_waits, obj._lst_recv_waits);
+        std::swap(_queue, obj._queue);
+        std::swap(_mutex, obj._mutex);
+    }
+
+    CoChannel& operator=(CoChannel&& obj) {
+        std::swap(_closed, obj._closed);
+        std::swap(_use_cache, obj._use_cache);
+        std::swap(_lst_send_waits, obj._lst_send_waits);
+        std::swap(_lst_recv_waits, obj._lst_recv_waits);
+        std::swap(_queue, obj._queue);
+        std::swap(_mutex, obj._mutex);
+        return *this;
+    }
+
     ~CoChannel() {
         if (_queue) {
             delete _queue;
@@ -38,9 +59,9 @@ public:
             }
         }
         if (_use_cache) {
-            push_with_cache(obj);
+            pop_with_cache(obj);
         } else {
-            push_without_cache(obj);
+            pop_without_cache(obj);
         }
     }
 
@@ -52,16 +73,16 @@ public:
             }
         }
         if (_use_cache) {
-            _queue->pop_with_cache(obj);
+            push_with_cache(obj);
         } else {
-            _queue->pop_without_cache(obj);
+            push_without_cache(obj);
         }
     }
 
     void push_with_cache(const T& obj) {
         _mutex.lock();
-        if (_queue->get_max_size() > _queue->get_size()) {
-            _queue->push_back(obj);
+        if (_queue->size() > _queue->cur_size()) {
+            _queue->push(obj);
         } else {
             do {
                 auto cur_co = CoSchedule::get_instance()->get_cur_co();
@@ -71,8 +92,8 @@ public:
                 });
                 // ??? 是否会出现channel关闭后唤醒
                 _mutex.lock();
-            } while (_queue->get_max_size() > _queue->get_size());
-            _queue->push_back(obj);
+            } while (_queue->size() > _queue->cur_size());
+            _queue->push(obj);
         }
 
         shared_ptr<Coroutine> co;
@@ -88,7 +109,8 @@ public:
         _mutex.lock();
         if (_lst_recv_waits.front(co)) {
             _lst_recv_waits.pop_front();
-            co->_param = obj;
+            co->_param.type = CO_PARAM_CHANNEL_RECV;
+            co->_param.value = obj;
             _mutex.unlock();
             CoSchedule::get_instance()->resume(co);
         } else {

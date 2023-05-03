@@ -29,6 +29,10 @@ public:
         return _lst_timer.size() > 0 ? true : false;
     }
 
+    int size() {
+        return (int)_lst_timer.size();
+    }
+
     std::vector<AnyFunc> get_enable_timer();
 
     CoTimerId insert(AnyFunc func, int delay_ms, int period_ms);

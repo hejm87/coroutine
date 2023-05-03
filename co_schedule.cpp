@@ -1,14 +1,14 @@
 #include "co_schedule.h"
+#include "co_executor.h"
 #include "co_define.h"
+#include "common/helper.h"
 
 using namespace std;
 
-thread_local context_t* g_ctx_main = NULL;
 thread_local shared_ptr<CoExecutor> g_co_executor;
 
 CoSchedule::CoSchedule()
 {
-    _is_running = false;
     _stack_size = get_stack_size();
 
     _executor_count = get_executor_count();
@@ -27,18 +27,20 @@ CoSchedule::~CoSchedule()
 {
     _is_set_end = true;
     for (auto& item : _executors) {
-        item->wait();
+        item->stop();
     }
     _timer_thread.join();
 }
 
-void CoSchedule::create(const AnyFunc& func, bool priority) throw CoException
+void CoSchedule::create(const AnyFunc& func, bool priority) throw(CoException)
 {
     lock_guard<mutex> lock(_mutex);
     shared_ptr<Coroutine> co;
-    if (!_lst_free.pop_front(co)) {
+    if (!_lst_free.front(co)) {
         throw CoException(CO_ERROR_NO_RESOURCE);
     }
+    _lst_free.pop_front();
+
     co->_func = func;
     co->_priority = priority;
     if (priority) {
@@ -48,28 +50,27 @@ void CoSchedule::create(const AnyFunc& func, bool priority) throw CoException
     }
 }
 
-CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority) throw CoException
+CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority) throw(CoException)
 {
     lock_guard<mutex> lock(_mutex);
     shared_ptr<Coroutine> co;
     CoAwaiter awaiter;
-    if (!_lst_free.pop_front(co)) {
+    if (!_lst_free.front(co)) {
         throw CoException(CO_ERROR_NO_RESOURCE);
     }
-    if (check_in_co_thread()) {     // Э���߳�
-        CoChannel<Any> chan();
-        co->_func = AnyFunc([func, chan] () {
-            chan << func();
+    _lst_free.pop_front();
+    if (is_in_co_thread()) {     // Э���߳�
+        co->_func = AnyFunc([func, &awaiter] () {
+            awaiter._wait_chan << func();
         });
-        awaiter._external_thread = false;
-        awaiter._wait_chan = chann;
+        awaiter._is_call_on_co_thread = false;
     } else {    // ��Э���߳�
         promise<Any> p;
-        co->_func = AnyFunc([func, p] () {
+        co->_func = AnyFunc([func, &p] () {
             p.set_value(func());
         });
-        awaiter._external_thread = true;
-        awaiter._wait_future = p.get_future;
+        awaiter._is_call_on_co_thread = true;
+        awaiter._wait_future = p.get_future();
     }
     co->_priority = priority;
     if (priority) {
@@ -112,7 +113,7 @@ CoTimerId CoSchedule::set_timer(const AnyFunc& func, int delay_ms, int period_ms
         }
         timer_id = _lst_timer.insert(func, delay_ms, period_ms);
     }
-    _cv.notify();
+    _cv.notify_one();
     return timer_id;
 }
 
@@ -127,7 +128,8 @@ vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
     vector<shared_ptr<Coroutine>> cos;
     lock_guard<mutex> lock(_mutex);
     shared_ptr<Coroutine> co;
-    if (_lst_ready.pop_front(co)) {
+    if (_lst_ready.front(co)) {
+        _lst_ready.pop_front();
         cos.push_back(co);
     }
 }

@@ -11,6 +11,10 @@ class CoMutex
 {
 public:
     CoMutex();
+    CoMutex(CoMutex&& obj);
+
+    CoMutex& operator=(CoMutex&& obj);
+
     void lock();
     void unlock();
 

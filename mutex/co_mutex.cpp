@@ -1,9 +1,25 @@
+#include <algorithm>
 #include "co_mutex.h"
 #include "../co_schedule.h"
 
 CoMutex::CoMutex()
 {
     _value = 0;
+}
+
+CoMutex::CoMutex(CoMutex&& obj)
+{
+    std::swap(_value, obj._value);
+    std::swap(_block_list, obj._block_list);
+    std::swap(_lock_co, obj._lock_co);
+}
+
+CoMutex& CoMutex::operator=(CoMutex&& obj)
+{
+    std::swap(_value, obj._value);
+    std::swap(_block_list, obj._block_list);
+    std::swap(_lock_co, obj._lock_co);
+    return *this;
 }
 
 void CoMutex::lock()

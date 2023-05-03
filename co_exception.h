@@ -20,9 +20,10 @@ const int CO_ERROR_SET_TIMER = 10;             // 设置定时器失败
 const int CO_ERROR_PACKAGE_FUNCTION = 11;     // 无效处理函数
 const int CO_ERROR_UNLOCK_EXCEPTION = 12;     // 解锁错误
 
-static map<int, string> s_errors = 
+static std::map<int, std::string> s_errors = 
 {
-    DEF_KV(CO_ERROR_NO_RESOURCE),
+    DEF_KV(CO_ERROR_UNKNOW),
+    // !!! 继续补充
 };
 
 class CoException : public std::exception

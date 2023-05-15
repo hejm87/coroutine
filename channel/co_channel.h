@@ -51,7 +51,7 @@ public:
         }
     }
 
-    void operator>>(T& obj) throw(CoException) {
+    void operator>>(T& obj) {
         {
             _mutex.lock();
             if (!_closed) {
@@ -65,7 +65,7 @@ public:
         }
     }
 
-    void operator<<(const T& obj) throw(CoException) {
+    void operator<<(const T& obj) {
         {
             _mutex.lock();
             if (!_closed) {
@@ -90,7 +90,7 @@ public:
                 CoSchedule::get_instance()->yield([this]() {
                     _mutex.unlock();
                 });
-                // ??? 是否会出现channel关闭后唤醒
+                // ??? �?否会出现channel关闭后唤�?
                 _mutex.lock();
             } while (_queue->size() > _queue->cur_size());
             _queue->push(obj);
@@ -104,7 +104,7 @@ public:
         _mutex.unlock();
     }
 
-    void push_without_cache(const T& obj) throw(CoException) {
+    void push_without_cache(const T& obj) {
         std::shared_ptr<Coroutine> co;
         _mutex.lock();
         if (_lst_recv_waits.front(co)) {

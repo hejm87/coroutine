@@ -3,14 +3,14 @@
 
 #include "co_context.h"
 
-class CoUcontextHandle : public CoContext
+class CoUContextHandle : public CoContext
 {
 public:
     bool init_context();
-    bool swap_context(co_context_t* ctx_source, co_context_t* ctx_dest);
+    bool swap_context(co_context_handle ctx_source, co_context_handle ctx_dest);
 
-    co_context_t* create_context(context_func func, shared_ptr<void> argv);
-    void release_context(co_context_t* ctx);
+    co_context_handle create_context(context_func func, std::shared_ptr<void> argv);
+    void release_context(co_context_handle ctx);
 };
 
 #endif

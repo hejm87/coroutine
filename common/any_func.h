@@ -33,7 +33,7 @@ public:
 		_func = obj._func;
 	}
 	
-	Any operator()() const throw (CoException) {
+	Any operator()() const {
 		if (!_func) {
 			throw CoException(CO_ERROR_PACKAGE_FUNCTION);
 		}

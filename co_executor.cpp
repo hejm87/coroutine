@@ -80,7 +80,7 @@ void CoExecutor::yield(function<void()> do_after)
     g_ctx_handle->swap_context(_running_co->get_context(), g_ctx_main);
 }
 
-void CoExecutor::resume(shared_ptr<Coroutine> co) throw(CoException)
+void CoExecutor::resume(shared_ptr<Coroutine> co)
 {
     lock_guard<mutex> lock(_mutex);
     if (!_lst_wait.remove(co)) {

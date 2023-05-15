@@ -28,9 +28,9 @@ public:
         return &instance;
     }
 
-    void create(const AnyFunc& func, bool priority = false) throw(CoException);
+    void create(const AnyFunc& func, bool priority = false);
 
-    CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false) throw(CoException);
+    CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false);
 
     void sleep(int sleep_ms);
 

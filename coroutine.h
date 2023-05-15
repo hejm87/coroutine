@@ -47,7 +47,7 @@ public:
 		_func = f;
 	}
 
-    co_context_t* get_context() {
+    co_context_handle get_context() {
         return _ctx;
     } 
 
@@ -65,11 +65,11 @@ public:
 	}
 
 public:
-    int		_status;	// 协程状态
-	bool	_priority;	// 协程执行优先级
+    int		_status;	// 协程状�?
+	bool	_priority;	// 协程执�?�优先级
 
-	AnyFunc _func;		// 协程执行函数
-	Any		_result;	// 协程执行结果
+	AnyFunc _func;		// 协程执�?�函�?
+	Any		_result;	// 协程执�?�结�?
 
 	CoParam	_param;
 
@@ -79,7 +79,7 @@ public:
 	weak_ptr<CoExecutor>	_co_executor;
 
 private:
-    co_context_t*	_ctx;
+    co_context_handle		_ctx;
 };
 
 #endif

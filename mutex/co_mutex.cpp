@@ -9,14 +9,14 @@ CoMutex::CoMutex()
 
 CoMutex::CoMutex(CoMutex&& obj)
 {
-    std::swap(_value, obj._value);
+    _value = obj._value.load();
     std::swap(_block_list, obj._block_list);
     std::swap(_lock_co, obj._lock_co);
 }
 
 CoMutex& CoMutex::operator=(CoMutex&& obj)
 {
-    std::swap(_value, obj._value);
+    _value = obj._value.load();
     std::swap(_block_list, obj._block_list);
     std::swap(_lock_co, obj._lock_co);
     return *this;
@@ -40,7 +40,7 @@ void CoMutex::lock()
     } while (1);    
 }
 
-void unlock() {
+void CoMutex::unlock() {
     if (_value == 0) {
         return ;
     }

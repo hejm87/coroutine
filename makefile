@@ -1,10 +1,16 @@
 OBJS=obj/co_list.o obj/co_timer.o obj/co_ucontext_handle.o obj/co_mutex.o obj/co_executor.o obj/co_schedule.o
+LIB_DIR=./lib
 
-all: mkobj $(OBJS)
-	ar -rc libco.a $(OBJS)
+all: mkobj $(OBJS) make_lib make_test
 
 mkobj:
 	test -d ./obj || mkdir -p ./obj
+
+make_lib:
+	ar -rc $(LIB_DIR)/libco.a $(OBJS)
+
+make_test:
+	g++ -std=c++11 -o flow_test test/flow_test.cpp
 
 obj/co_list.o: co_common/co_list.cpp
 	g++ -std=c++11 -o $@ -c $<
@@ -25,5 +31,5 @@ obj/co_schedule.o: co_schedule.cpp
 	g++ -std=c++11 -o $@ -c $<
 
 clean:
-	rm -f libco.a
+	rm -f ${LIB_DIR}/libco.a
 	rm -rf obj

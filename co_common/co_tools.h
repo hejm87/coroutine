@@ -1,10 +1,10 @@
-#ifndef __CO_COMMON_H__
-#define __CO_COMMON_H__
+#ifndef __CO_TOOLS_H__
+#define __CO_TOOLS_H__
 
 #include <unistd.h>
 #include <memory>
 
-#include "context/co_context.h"
+#include "../context/co_context.h"
 
 const int DEF_STACK_SIZE = 4 * 1024;
 

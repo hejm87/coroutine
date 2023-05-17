@@ -2,19 +2,19 @@
 #define __CO_API_H__
 
 #include <unistd.h>
-#include "co_common.h"
+#include "co_schedule.h"
 
 class CoApi
 {
 public:
     template <class F, class... Args>
-    static void create(F&& f, Args&&... args) throw CoException {
+    static void create(F&& f, Args&&... args) {
         auto func = AnyFunc(forward<F>(f), forward<Args>(args)...);
         CoSchedule::get_instance()->create(func);
     }
 
     template <class F, class... Args>
-    static CoAwaiter create_with_promise(F&& f, Args&&... args) throw CoException {
+    static CoAwaiter create_with_promise(F&& f, Args&&... args) {
         auto func = AnyFunc(forward<F>(f), forward<Args>(args)...);
         return CoSchedule::get_instance()->create_with_promise(func);
     }

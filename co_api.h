@@ -2,6 +2,7 @@
 #define __CO_API_H__
 
 #include <unistd.h>
+#include "co_define.h"
 #include "co_schedule.h"
 
 class CoApi
@@ -32,7 +33,7 @@ public:
     }
 
     static void sleep(int sleep_ms) {
-        if (!check_in_co_thread()) {
+        if (!is_in_co_thread()) {
             throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
         }
         CoSchedule::get_instance()->sleep(sleep_ms);

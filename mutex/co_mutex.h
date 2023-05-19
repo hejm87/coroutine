@@ -3,7 +3,7 @@
 
 #include <atomic>
 #include <memory>
-#include "../co_common/co_list.h"
+#include "../co_define.h"
 
 class Coroutine;
 

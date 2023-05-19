@@ -8,6 +8,7 @@
 #include "common/any.h"
 #include "common/any_func.h"
 #include "context/co_context.h"
+#include "co_executor.h"
 #include "co_schedule.h"
 
 // coroutine status
@@ -73,8 +74,8 @@ public:
 
 	CoParam	_param;
 
-	shared_ptr<Coroutine> 	_prev;
-	shared_ptr<Coroutine> 	_next;
+//	shared_ptr<Coroutine> 	_prev;
+//	shared_ptr<Coroutine> 	_next;
 
 	weak_ptr<CoExecutor>	_co_executor;
 

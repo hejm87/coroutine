@@ -1,7 +1,7 @@
 #include "co_schedule.h"
 #include "co_executor.h"
-#include "co_define.h"
 #include "common/helper.h"
+#include "co_common/co_awaiter.h"
 
 using namespace std;
 
@@ -79,6 +79,11 @@ CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority)
         _lst_ready.push_back(co);
     }
     return awaiter;
+}
+
+void CoSchedule::sleep(int sleep_ms)
+{
+	;
 }
 
 void CoSchedule::yield(function<void()> do_after)

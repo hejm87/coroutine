@@ -8,11 +8,11 @@
 #include <thread>
 #include <condition_variable>
 #include <vector>
+#include "co_define.h"
 #include "co_helper.h"
 #include "co_exception.h"
 #include "common/any.h"
 #include "co_common/co_tools.h"
-#include "co_common/co_list.h"
 #include "co_common/co_timer.h"
 
 class Coroutine;

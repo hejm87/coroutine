@@ -1,11 +1,11 @@
 #ifndef __CO_CHANNEL_H__
 #define __CO_CHANNEL_H__
 
+#include <algorithm>
 #include "../common/ring_queue.h"
 #include "../mutex/co_mutex.h"
-#include "../co_common/co_list.h"
 #include "../coroutine.h"
-#include <algorithm>
+#include "../co_define.h"
 #include "../co_schedule.h"
 #include "../co_exception.h"
 

@@ -21,22 +21,17 @@ public:
     }
 
     template <class F, class... Args>
-    static CoTimer set_timer(int delay_ms, F&& f, Args&&... args) {
+    static CoTimerId set_timer(int delay_ms, F&& f, Args&&... args) {
         auto func = AnyFunc(forward<F>(f), forward<Args>(args)...);
-        return CoSchedule::get_instance()->set_timer(func, delay_ms, 0);
-    }
-
-    template <class F, class... Args>
-    static CoTimer set_timer(int delay_ms, int period_ms, F&& f, Args&&... args) {
-        auto func = AnyFunc(forward<F>(f), forward<Args>(args)...);
-        return CoSchedule::get_instance()->set_timer(func, delay_ms, period_ms);
+        return CoSchedule::get_instance()->set_timer(func, delay_ms);
     }
 
     static void sleep(int sleep_ms) {
         if (!is_in_co_thread()) {
-            throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
+            usleep(sleep_ms);
+        } else {
+            CoSchedule::get_instance()->sleep(sleep_ms);
         }
-        CoSchedule::get_instance()->sleep(sleep_ms);
     }
 };
 

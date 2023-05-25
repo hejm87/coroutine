@@ -1,4 +1,3 @@
-#include "co_schedule.h"
 #include "co_executor.h"
 #include "common/helper.h"
 #include "co_common/co_awaiter.h"
@@ -17,10 +16,7 @@ CoSchedule::CoSchedule()
         _executors.push_back(ptr);
         ptr->run();
     }
-
-    _timer_thread = thread([this](){
-        run_timer();
-    });
+    _timer.init(DEF_TIMER_THREAD_COUNT);
 }
 
 CoSchedule::~CoSchedule()
@@ -29,7 +25,6 @@ CoSchedule::~CoSchedule()
     for (auto& item : _executors) {
         item->stop();
     }
-    _timer_thread.join();
 }
 
 void CoSchedule::create(const AnyFunc& func, bool priority)
@@ -83,7 +78,11 @@ CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority)
 
 void CoSchedule::sleep(int sleep_ms)
 {
-	;
+    if (!g_co_executor) {
+        throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
+    }
+    auto co = g_co_executor->get_running_co();
+    co->_suspend_type = CO_SUSPEND_SLEEP;
 }
 
 void CoSchedule::yield(function<void()> do_after)
@@ -106,26 +105,16 @@ void CoSchedule::resume(shared_ptr<Coroutine> co)
     }
 }
 
-CoTimerId CoSchedule::set_timer(const AnyFunc& func, int delay_ms, int period_ms)
+CoTimerId CoSchedule::set_timer(int delay_ms, const AnyFunc& func)
 {
-    CoTimerId timer_id;
-    {
-        lock_guard<mutex> lock(_mutex);
-        auto notify = false;
-        auto happen_ms = now_ms() + delay_ms;
-        if (_lst_timer.size() > 0 && _lst_timer.get_next_time() > happen_ms) {
-            notify = true;
-        }
-        timer_id = _lst_timer.insert(func, delay_ms, period_ms);
-    }
-    _cv.notify_one();
-    return timer_id;
+    return _timer.set(delay_ms, [this, &func]() {
+        create(func, true);
+    });
 }
 
 bool CoSchedule::stop_timer(const CoTimerId& timer_id)
 {
-    lock_guard<mutex> lock(_mutex);
-    return _lst_timer.remove(timer_id);
+    _timer.cancel(timer_id);
 }
 
 vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
@@ -136,37 +125,6 @@ vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
     if (_lst_ready.front(co)) {
         _lst_ready.pop_front();
         cos.push_back(co);
-    }
-}
-
-void CoSchedule::run_timer()
-{
-    while (!_is_set_end) {
-
-        int wait_ms = -1;
-        {
-            lock_guard<mutex> lock(_mutex);
-            if (_lst_timer.size() > 0) {
-                auto delta_ms = _lst_timer.get_next_time() - now_ms();
-                wait_ms = delta_ms > 0 ? delta_ms : 0;
-            }
-        }
-
-        unique_lock<mutex> lock(_mutex);
-        if (wait_ms == -1) {
-            _cv.wait(lock);
-        } else if (wait_ms > 0) {
-            _cv.wait_for(lock, chrono::milliseconds(wait_ms));
-        }
-
-        vector<AnyFunc> funcs;
-        {
-            lock_guard<mutex> lock(_mutex);
-            funcs = _lst_timer.get_enable_timer();
-        }
-        for (auto& item : funcs) {
-            create(item, true);
-        }
     }
 }
 

@@ -6,8 +6,6 @@
 
 #include "../context/co_context.h"
 
-const int DEF_STACK_SIZE = 4 * 1024;
-
 inline bool is_in_co_thread() {
     return g_ctx_main ? true : false;
 }

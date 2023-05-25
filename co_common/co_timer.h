@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include <atomic>
+#include <mutex>
+#include <thread>
 
 #include "../common/any_func.h"
 
@@ -12,7 +15,6 @@ class CoTimer
 {
 public:
     AnyFunc _func;
-    int     _period_ms;
 };
 
 class CoTimerId
@@ -26,7 +28,7 @@ class CoTimerList
 {
 public:
     bool is_empty() {
-        return _lst_timer.size() > 0 ? true : false;
+        return _lst_timer.size() == 0 ? true : false;
     }
 
     int size() {
@@ -35,15 +37,58 @@ public:
 
     std::vector<AnyFunc> get_enable_timer();
 
-    CoTimerId insert(AnyFunc func, int delay_ms, int period_ms);
+    CoTimerId insert(AnyFunc func, int delay_ms);
     bool remove(const CoTimerId& timer_id);
     long get_next_time();
 
 private:
-    typedef std::multimap<long, std::shared_ptr<CoTimer>> lst_timer;
+    typedef std::multimap<long, std::shared_ptr<CoTimer>> LIST_TIMER;
 
-    lst_timer   _lst_timer;
-    std::unordered_map<std::shared_ptr<CoTimer>, lst_timer::iterator>   _lst_timer_ptr;
+    LIST_TIMER  _lst_timer;
+    std::unordered_map<std::shared_ptr<CoTimer>, LIST_TIMER::iterator>  _lst_timer_iter;
+};
+
+// ###################################################
+struct CoTimerRunner
+{
+    AnyFunc func;
+};
+
+class CoTimerId
+{
+friend class CoTimer;
+private:
+    std::weak_ptr<CoTimerRunner>    _ptr;
+};
+
+class CoTimer
+{
+public:
+    CoTimer* get_instance() {
+        static CoTimer s_instance;
+        return &s_instance;
+    }
+
+    CoTimerId insert(AnyFunc func, int delay_ms);
+
+    bool remove(const CoTimerId& id);
+
+private:
+    CoTimer();
+    ~CoTimer();
+
+    void run();
+
+private:
+    typedef std::multimap<long, std::shared_ptr<CoTimerRunner>> LIST_TIMER;
+
+    LIST_TIMER  _list;
+    std::map<std::shared_ptr<CoTimerRunner>, LIST_TIMER::iterator>  _list_timer_iter;
+
+    std::mutex  _mutex;
+    std::thread _thread;
+
+    std::atomic<bool>   _terminate;
 };
 
 #endif

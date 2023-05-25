@@ -27,6 +27,12 @@ enum {
 	CO_PARAM_CHANNEL_RECV,
 };
 
+// coroutine suspend type
+enum {
+	CO_SUSPEND_SLEEP= 0,
+	CO_SUSPEND_IO_BLOCK,
+};
+
 struct CoParam
 {
 	int		type;		// coroutine param
@@ -66,16 +72,14 @@ public:
 	}
 
 public:
-    int		_status;	// 协程状�?
-	bool	_priority;	// 协程执�?�优先级
+    int		_status;			// 协程状态
+	int		_suspend_status;	// 协程暂停状态
+	bool	_priority;			// 协程执行优先级
 
-	AnyFunc _func;		// 协程执�?�函�?
-	Any		_result;	// 协程执�?�结�?
+	AnyFunc _func;		// 协程执行函数
+	Any		_result;	// 协程执行结果
 
 	CoParam	_param;
-
-//	shared_ptr<Coroutine> 	_prev;
-//	shared_ptr<Coroutine> 	_next;
 
 	weak_ptr<CoExecutor>	_co_executor;
 

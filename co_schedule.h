@@ -20,16 +20,13 @@ class CoTimerId;
 class CoAwaiter;
 class CoExecutor;
 
+typedef TimerId CoTimerId;
+
 extern thread_local shared_ptr<CoExecutor> g_co_executor;
 
 class CoSchedule
 {
 public:
-    static CoSchedule* get_instance() {
-        static CoSchedule instance;
-        return &instance;
-    }
-
     void create(const AnyFunc& func, bool priority = false);
 
     CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false);
@@ -40,7 +37,8 @@ public:
 
     void resume(std::shared_ptr<Coroutine> co);
 
-    CoTimerId set_timer(const AnyFunc& func, int delay_ms, int period_ms = 0);
+    // 定时器调度后使用协程执行定时器逻辑
+    CoTimerId set_timer(int delay_ms, const AnyFunc& func);
 
     bool stop_timer(const CoTimerId& timer_id);
 
@@ -74,8 +72,6 @@ private:
     CoSchedule();
     ~CoSchedule();
 
-    void run_timer();
-
     bool get_free_co(std::shared_ptr<Coroutine> &co) {
         lock_guard<mutex> lock(_mutex);
         if (!_lst_free.front(co)) {
@@ -85,8 +81,11 @@ private:
     }
 
 private:
-    CoList  _lst_free;
-    CoList  _lst_ready;
+    CoList  _lst_free;      // 协程空闲队列
+   // CoList  _lst_ready;     // 协程就绪队列
+   // CoList  _lst_wait;      // 协程等待队列
+
+    Timer   _timer;         // 定时器
 
     int     _stack_size;
     int     _max_co_size;
@@ -94,14 +93,10 @@ private:
     int     _cur_co_size;
     int     _executor_count;
 
-    CoTimerList     _lst_timer;
-
     std::atomic<bool>    _is_set_end;
     std::vector<std::shared_ptr<CoExecutor>>  _executors;
 
-    std::condition_variable _cv;
     std::mutex  _mutex;
-    std::thread _timer_thread;
 
     std::function<void(int, const char*)>  _logger;
 };

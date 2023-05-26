@@ -4,7 +4,7 @@
 #include <memory>
 
 typedef void* co_context_handle;
-typedef void (*context_func)(std::shared_ptr<void>);
+typedef void (*context_func)(std::shared_ptr<void>&);
 
 class CoContext
 {

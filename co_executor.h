@@ -7,9 +7,10 @@
 #include <exception>
 #include <list>
 #include <map>
+#include <thread>
+#include <mutex>
 
 #include "co_define.h"
-#include "co_common/co_timer.h"
 
 class Coroutine;
 
@@ -23,11 +24,11 @@ public:
     void stop(bool wait = true);
     bool wait_util_stop();
 
-	void put(std::shared_ptr<Coroutine> coroutine);
+//	void put(std::shared_ptr<Coroutine> coroutine);
 
-    void sleep(int sleep_ms);
-    void yield(std::function<void()> do_after = nullptr);
-    void resume(std::shared_ptr<Coroutine> co);
+//    void sleep(int sleep_ms);
+//    void yield(std::function<void()> do_after = nullptr);
+//    void resume(std::shared_ptr<Coroutine> co);
 
     std::shared_ptr<Coroutine> get_running_co();
 
@@ -40,16 +41,15 @@ private:
     bool get_ready_co(std::shared_ptr<Coroutine>& co);
 
 private:
-    CoList      _lst_wait;      // 等待队列
     CoList      _lst_ready;     // 就绪队列
 
     std::shared_ptr<Coroutine>   _running_co;
 
-    std::thread         _thread_handle;
+    std::thread         _thread;
     std::atomic<bool>   _is_running;
     std::atomic<bool>   _is_set_end;
 
-    mutex   _mutex;
+    std::mutex   _mutex;
 };
 
 #endif

@@ -1,4 +1,4 @@
-OBJS=obj/co_timer.o obj/co_ucontext_handle.o obj/co_mutex.o obj/co_executor.o obj/co_schedule.o
+OBJS=obj/co_ucontext_handle.o obj/co_mutex.o obj/co_executor.o obj/co_schedule.o
 LIB_DIR=./lib
 
 all: mkobj $(OBJS) make_lib

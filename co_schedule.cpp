@@ -1,5 +1,7 @@
+#include <assert.h>
 #include "co_executor.h"
 #include "common/helper.h"
+#include "co_common/co_timer.h"
 #include "co_common/co_awaiter.h"
 
 using namespace std;
@@ -16,7 +18,6 @@ CoSchedule::CoSchedule()
         _executors.push_back(ptr);
         ptr->run();
     }
-    _timer.init(DEF_TIMER_THREAD_COUNT);
 }
 
 CoSchedule::~CoSchedule()
@@ -54,12 +55,12 @@ CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority)
         throw CoException(CO_ERROR_NO_RESOURCE);
     }
     _lst_free.pop_front();
-    if (is_in_co_thread()) {     // Э���߳�
+    if (is_in_co_thread()) {
         co->_func = AnyFunc([func, &awaiter] () {
             awaiter._wait_chan << func();
         });
         awaiter._is_call_on_co_thread = false;
-    } else {    // ��Э���߳�
+    } else {
         promise<Any> p;
         co->_func = AnyFunc([func, &p] () {
             p.set_value(func());
@@ -67,7 +68,6 @@ CoAwaiter CoSchedule::create_with_promise(const AnyFunc& func, bool priority)
         awaiter._is_call_on_co_thread = true;
         awaiter._wait_future = p.get_future();
     }
-    co->_priority = priority;
     if (priority) {
         _lst_ready.push_front(co);
     } else {
@@ -82,34 +82,54 @@ void CoSchedule::sleep(int sleep_ms)
         throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
     }
     auto co = g_co_executor->get_running_co();
-    co->_suspend_type = CO_SUSPEND_SLEEP;
+    co->_status = CO_STATUS_SUSPEND;
+    co->_suspend_status = CO_SUSPEND_SLEEP;
+
+    auto time = now_ms() + sleep_ms;
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _lst_suspend.push_back(co);
+        _timer.set(sleep_ms, [this, &co]() {
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (_lst_suspend.is_exist(co)) {
+                _lst_suspend.remove(co);
+            } else {
+                CO_LOG_ERROR("co_id:%d not in suspend list", co->_id);
+                assert(false);
+            }
+            _lst_ready.push_front(co);
+        });
+    }
+    g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
 
 void CoSchedule::yield(function<void()> do_after)
 {
-    if (!g_co_executor) {
-        throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
+    auto co = g_co_executor->get_running_co();
+    co->_status = CO_STATUS_READY;
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _lst_ready.push_back(co);
     }
-    g_co_executor->yield();
     if (do_after) {
         do_after();
     }
+    g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
 
 void CoSchedule::resume(shared_ptr<Coroutine> co)
 {
-    if (auto co_executor = co->_co_executor.lock()) {
-        co_executor->resume(co);
-    } else {
-        throw CoException(CO_ERROR_INVALID_CO_EXECUTOR);
-    }
+    std::lock_guard<std::mutex> lock(_mutex);     
+    assert(_lst_suspend.is_exist(co));
+    _lst_suspend.remove(co);
+    _lst_ready.push_front(co);
 }
 
 CoTimerId CoSchedule::set_timer(int delay_ms, const AnyFunc& func)
 {
     return _timer.set(delay_ms, [this, &func]() {
         create(func, true);
-    });
+    }); 
 }
 
 bool CoSchedule::stop_timer(const CoTimerId& timer_id)

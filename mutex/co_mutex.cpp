@@ -1,6 +1,7 @@
 #include <algorithm>
 #include "co_mutex.h"
 #include "../co_schedule.h"
+#include "../common/helper.h"
 
 CoMutex::CoMutex()
 {
@@ -30,13 +31,13 @@ void CoMutex::lock()
         if (_value.compare_exchange_strong(expect, 1)) {
             return ;
         }
-        auto co = CoSchedule::get_instance()->get_cur_co();
+        auto co = Singleton<CoSchedule>::get_instance()->get_cur_co();
         if (is_wake_up) {
             _block_list.push_back(co);
         } else {
             _block_list.push_front(co);
         } 
-        CoSchedule::get_instance()->yield();
+        Singleton<CoSchedule>::get_instance()->yield();
     } while (1);    
 }
 
@@ -44,7 +45,7 @@ void CoMutex::unlock() {
     if (_value == 0) {
         return ;
     }
-    auto cur_co = CoSchedule::get_instance()->get_cur_co();
+    auto cur_co = Singleton<CoSchedule>::get_instance()->get_cur_co();
     if (_value == 1 && _lock_co != cur_co) {
         throw CoException(CO_ERROR_UNLOCK_EXCEPTION);
     }
@@ -54,5 +55,5 @@ void CoMutex::unlock() {
         _block_list.pop_front();
     }
     _value = 0;
-    CoSchedule::get_instance()->resume(cur_co);
+    Singleton<CoSchedule>::get_instance()->resume(cur_co);
 }

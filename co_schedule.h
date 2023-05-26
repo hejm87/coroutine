@@ -5,28 +5,29 @@
 #include <atomic>
 #include <exception>
 #include <functional>
-#include <thread>
-#include <condition_variable>
 #include <vector>
 #include "co_define.h"
 #include "co_helper.h"
 #include "co_exception.h"
 #include "common/any.h"
+#include "common/any_func.h"
 #include "co_common/co_tools.h"
-#include "co_common/co_timer.h"
 
-class Coroutine;
+class CoTimer;
 class CoTimerId;
 class CoAwaiter;
 class CoExecutor;
-
-typedef TimerId CoTimerId;
+class Coroutine;
 
 extern thread_local shared_ptr<CoExecutor> g_co_executor;
 
 class CoSchedule
 {
 public:
+    CoSchedule();
+
+    ~CoSchedule();
+
     void create(const AnyFunc& func, bool priority = false);
 
     CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false);
@@ -69,9 +70,6 @@ public:
     }
 
 private:
-    CoSchedule();
-    ~CoSchedule();
-
     bool get_free_co(std::shared_ptr<Coroutine> &co) {
         lock_guard<mutex> lock(_mutex);
         if (!_lst_free.front(co)) {
@@ -82,10 +80,10 @@ private:
 
 private:
     CoList  _lst_free;      // 协程空闲队列
-   // CoList  _lst_ready;     // 协程就绪队列
-   // CoList  _lst_wait;      // 协程等待队列
+    CoList  _lst_ready;     // 协程就绪队列
+    CoList  _lst_suspend;   // 协程等待队列
 
-    Timer   _timer;         // 定时器
+    CoTimer _timer;
 
     int     _stack_size;
     int     _max_co_size;

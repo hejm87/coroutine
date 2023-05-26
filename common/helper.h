@@ -12,7 +12,7 @@
 
 // 进程单例
 template <class T>
-class SingleInstance
+class Singleton
 {
 public:
     static T* get_instance() {
@@ -23,7 +23,7 @@ public:
 
 // 线程单例
 template <class T>
-class ThreadSingleInstance
+class ThreadSingleton
 {
 public:
     static T* get_instance() {

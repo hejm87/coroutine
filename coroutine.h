@@ -7,6 +7,7 @@
 
 #include "common/any.h"
 #include "common/any_func.h"
+#include "common/helper.h"
 #include "context/co_context.h"
 #include "co_executor.h"
 #include "co_schedule.h"
@@ -42,7 +43,8 @@ struct CoParam
 class Coroutine : std::enable_shared_from_this<Coroutine>
 {
 public:
-    Coroutine() {
+    Coroutine(int id) {
+		_id = id;
 		_status = CO_STATUS_IDLE;	
 		_ctx = g_ctx_handle->create_context(Coroutine::co_run, shared_from_this());
 	}
@@ -63,15 +65,16 @@ public:
 		_status = CO_STATUS_FINISH;
 	}
 
-	static void co_run(std::shared_ptr<void> ptr) {
+	static void co_run(std::shared_ptr<void>& ptr) {
 		auto co_ptr = std::static_pointer_cast<Coroutine>(ptr);
-		while (!CoSchedule::get_instance()->is_set_end()) {
+		while (!Singleton<CoSchedule>::get_instance()->is_set_end()) {
 			co_ptr->run();
-			CoSchedule::get_instance()->yield();
+			Singleton<CoSchedule>::get_instance()->yield();
 		}
 	}
 
 public:
+	int		_id;				// 协程id
     int		_status;			// 协程状态
 	int		_suspend_status;	// 协程暂停状态
 	bool	_priority;			// 协程执行优先级
@@ -81,7 +84,7 @@ public:
 
 	CoParam	_param;
 
-	weak_ptr<CoExecutor>	_co_executor;
+//	weak_ptr<CoExecutor>	_co_executor;
 
 private:
     co_context_handle		_ctx;

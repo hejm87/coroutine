@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <memory>
 
+#include "../co_define.h"
 #include "../context/co_context.h"
 
 inline bool is_in_co_thread() {

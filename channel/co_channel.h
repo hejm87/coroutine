@@ -85,9 +85,9 @@ public:
             _queue->push(obj);
         } else {
             do {
-                auto cur_co = CoSchedule::get_instance()->get_cur_co();
+                auto cur_co = Singleton<CoSchedule>::get_instance()->get_cur_co();
                 _lst_send_waits.push_back(cur_co);
-                CoSchedule::get_instance()->yield([this]() {
+                Singleton<CoSchedule>::get_instance()->yield([this]() {
                     _mutex.unlock();
                 });
                 // ??? �?否会出现channel关闭后唤�?
@@ -99,7 +99,7 @@ public:
         shared_ptr<Coroutine> co;
         if (_lst_recv_waits.front(co)) {
             _lst_recv_waits.pop_front();
-            CoSchedule::get_instance()->resume(co);
+            Singleton<CoSchedule>::get_instance()->resume(co);
         }
         _mutex.unlock();
     }
@@ -112,13 +112,13 @@ public:
             co->_param.type = CO_PARAM_CHANNEL_RECV;
             co->_param.value = obj;
             _mutex.unlock();
-            CoSchedule::get_instance()->resume(co);
+            Singleton<CoSchedule>::get_instance()->resume(co);
         } else {
-            co = CoSchedule::get_instance()->get_cur_co();
+            Singleton<CoSchedule>::get_instance()->resume(co);
             co->_param.type = CO_PARAM_CHANNEL_SEND;
             co->_param.value = obj;
             _lst_send_waits.push_back(co);
-            CoSchedule::get_instance()->yield([this]() {
+            Singleton<CoSchedule>::get_instance()->yield([this]() {
                 _mutex.unlock();
             });
             if (_closed) {
@@ -137,9 +137,9 @@ public:
             _queue->pop_front();
         } else {
             do {
-                auto cur_co = CoSchedule::get_instance()->get_cur_co();
+                auto cur_co = Singleton<CoSchedule>::get_instance()->get_cur_co();
                 _lst_recv_waits.push_back(cur_co);
-                CoSchedule::get_instance()->yield([this]() {
+                Singleton<CoSchedule>::get_instance()->yield([this]() {
                     _mutex.unlock();
                 });
                 _mutex.lock();
@@ -148,7 +148,7 @@ public:
         shared_ptr<Coroutine> co;
         if (_lst_send_waits.front(co)) {
             _lst_send_waits.pop_front();
-            CoSchedule::get_instance()->resume(co);
+            Singleton<CoSchedule>::get_instance()->resume(co);
         }
         _mutex.unlock();
     }
@@ -164,11 +164,11 @@ public:
             obj = co->_param.value;
             _mutex.unlock();
         } else {
-            co = CoSchedule::get_instance()->get_cur_co();
+            co = Singleton<CoSchedule>::get_instance()->get_cur_co();
             co->_param.type = CO_PARAM_CHANNEL_RECV;
             co->_param.value.Reset();
             _lst_recv_waits.push_back(co);
-            CoSchedule::get_instance()->yield([this]() {
+            Singleton<CoSchedule>::get_instance()->yield([this]() {
                 _mutex.unlock();
             });
             if (_closed) {

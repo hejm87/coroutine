@@ -3,8 +3,9 @@
 
 #include <map>
 #include <list>
+#include <algorithm>
 
-template <class T>
+template <typename T>
 class MapList
 {
 public:
@@ -70,7 +71,7 @@ public:
         return true;
     }
 
-    bool remove(const T& obj) {
+    bool remove(T& obj) {
         auto iter = _map_list_iter.find(obj);
         if (iter == _map_list_iter.end()) {
             return false;
@@ -89,13 +90,20 @@ public:
 		return _list.size() == 0 ? true : false;
 	}
 
+    bool is_exist(const T& obj) {
+        auto iter = _map_list_iter.find(obj);
+        return iter != _map_list_iter.end() ? true : false;
+    }
+
 	int size() {
 		return (int)_list.size();
 	}
 
 private:
+    typedef typename std::list<T>::iterator list_iter_t;
+
     std::list<T>    _list;
-    std::map<T, std::list<T>::iterator> _map_list_iter;
+    std::map<T, list_iter_t>    _map_list_iter;
 };
 
 #endif

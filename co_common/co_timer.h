@@ -5,90 +5,71 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
-#include <atomic>
-#include <mutex>
-#include <thread>
+#include "../common/helper.h"
+//#include "../common/any_func.h"
 
-#include "../common/any_func.h"
+class AnyFunc;
+class CoTimer;
 
-class CoTimer
-{
-public:
-    AnyFunc _func;
-};
-
-class CoTimerId
-{
-friend class CoTimerList;
-private:
-    std::weak_ptr<CoTimer>   _ptr;
-};
-
-class CoTimerList
-{
-public:
-    bool is_empty() {
-        return _lst_timer.size() == 0 ? true : false;
-    }
-
-    int size() {
-        return (int)_lst_timer.size();
-    }
-
-    std::vector<AnyFunc> get_enable_timer();
-
-    CoTimerId insert(AnyFunc func, int delay_ms);
-    bool remove(const CoTimerId& timer_id);
-    long get_next_time();
-
-private:
-    typedef std::multimap<long, std::shared_ptr<CoTimer>> LIST_TIMER;
-
-    LIST_TIMER  _lst_timer;
-    std::unordered_map<std::shared_ptr<CoTimer>, LIST_TIMER::iterator>  _lst_timer_iter;
-};
-
-// ###################################################
-struct CoTimerRunner
-{
-    AnyFunc func;
-};
+typedef std::multimap<long, std::shared_ptr<AnyFunc>> co_timer_list_t;
+typedef std::unordered_map<std::shared_ptr<AnyFunc>, co_timer_list_t::iterator> co_map_timer_list_t;
 
 class CoTimerId
 {
 friend class CoTimer;
 private:
-    std::weak_ptr<CoTimerRunner>    _ptr;
+    CoTimer(std::shared_ptr<AnyFunc>& ptr) {
+        _ptr = ptr;
+    }
+    std::weak_ptr<AnyFunc>  _ptr;
 };
 
 class CoTimer
 {
 public:
-    CoTimer* get_instance() {
-        static CoTimer s_instance;
-        return &s_instance;
+    template <class F, class... Args> 
+    CoTimerId set(int delay_ms, F&& f, Args&&... args) {
+        auto time = now_ms() + delay_ms;
+        auto ptr  = std::shared_ptr<AnyFunc>(new AnyFunc(std::forward<F>(f), std::forward<Args>(args)...));
+        _map_list_iter[ptr] = _list.insert(make_pair(time, ptr));
+        return CoTimerId(ptr);
     }
 
-    CoTimerId insert(AnyFunc func, int delay_ms);
+    bool cancel(const CoTimerId& id) {
+        auto ptr = id._ptr.lock();
+        if (!ptr) {
+            return false;
+        }
+        auto iter = _map_list_iter.find(ptr);
+        if (iter == _map_list_iter.end()) {
+            return false;
+        }
+        _list.erase(iter->second);
+        _map_list_iter.erase(iter);
+        return true;
+    }
 
-    bool remove(const CoTimerId& id);
+    std::vector<AnyFunc> get_expires() {
+        if (_list.size() == 0) {
+            return std::vector<AnyFunc>();
+        }
+        auto now = now_ms();
+        auto find_iter = _list.lower_bound(now);
+        if (find_iter == _list.end()) {
+            return std::vector<AnyFunc>();
+        }
+        std::vector<AnyFunc> expires;
+        for (auto iter = _list.begin(); iter != find_iter; iter++) {
+            _map_list_iter.erase(iter->second);
+            expires.emplace_back(std::move(*(iter->second)));
+        }
+        _list.erase(_list.begin(), find_iter);
+        return expires;
+    }
 
 private:
-    CoTimer();
-    ~CoTimer();
-
-    void run();
-
-private:
-    typedef std::multimap<long, std::shared_ptr<CoTimerRunner>> LIST_TIMER;
-
-    LIST_TIMER  _list;
-    std::map<std::shared_ptr<CoTimerRunner>, LIST_TIMER::iterator>  _list_timer_iter;
-
-    std::mutex  _mutex;
-    std::thread _thread;
-
-    std::atomic<bool>   _terminate;
+    co_timer_list_t     _list;
+    co_map_timer_list_t _map_list_iter;
 };
 
 #endif

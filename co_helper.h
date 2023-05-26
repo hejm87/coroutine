@@ -2,6 +2,7 @@
 #define __CO_HELPER_H__
 
 #include "co_schedule.h"
+#include "common/helper.h"
 
 enum {
     CO_DEBUG = 0,
@@ -19,7 +20,7 @@ enum {
 
 #define CO_LOG(level, fmt, ...) \
 { \
-    CoSchedule::get_instance()->logger(level, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+    Singleton<CoSchedule>::get_instance()->logger(level, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 }
 
 #endif

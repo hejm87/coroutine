@@ -22,7 +22,7 @@ CoExecutor::~CoExecutor()
 
 bool CoExecutor::run()
 {
-    _thread_handle = thread([this]() {
+    _thread = thread([this]() {
         g_ctx_handle->init_context();
         while (!_is_set_end) {
             if (!on_execute()) {
@@ -46,10 +46,10 @@ bool CoExecutor::wait_util_stop()
     if (!_is_running) {
         return false;
     }
-    _thread_handle.join();
+    _thread.join();
     return true;
 }
-
+/*
 void CoExecutor::put(shared_ptr<Coroutine> co)
 {
     lock_guard<mutex> lock(_mutex);
@@ -88,7 +88,7 @@ void CoExecutor::resume(shared_ptr<Coroutine> co)
     }
     _lst_ready.push_front(co);
 }
-
+*/
 shared_ptr<Coroutine> CoExecutor::get_running_co()
 {
     return _running_co;
@@ -114,7 +114,7 @@ bool CoExecutor::on_execute()
 
     if (co->_status == CO_STATUS_FINISH) {
         co->_status = CO_STATUS_IDLE;
-        CoSchedule::get_instance()->free(co);
+        Singleton<CoSchedule>::get_instance()->free(co);
     }   
     return true;
 }
@@ -130,7 +130,7 @@ bool CoExecutor::get_ready_co(shared_ptr<Coroutine>& co)
         }
     }
 
-    auto cos = CoSchedule::get_instance()->get_global_co();
+    auto cos = Singleton<CoSchedule>::get_instance()->get_global_co();
     if (cos.size() == 0) {
         return false;
     }
@@ -145,6 +145,6 @@ bool CoExecutor::get_ready_co(shared_ptr<Coroutine>& co)
     }
     _lst_ready.front(co);
     _lst_ready.pop_front();
-    co->_co_executor = shared_from_this();
+   // co->_co_executor = shared_from_this();
     return true;
 }

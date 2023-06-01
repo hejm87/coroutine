@@ -45,10 +45,10 @@ private:
 
     std::shared_ptr<Coroutine>   _running_co;
 
-    std::thread         _thread;
     std::atomic<bool>   _is_running;
     std::atomic<bool>   _is_set_end;
 
+    std::thread  _thread;
     std::mutex   _mutex;
 };
 

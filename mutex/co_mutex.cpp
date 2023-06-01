@@ -3,6 +3,8 @@
 #include "../co_schedule.h"
 #include "../common/helper.h"
 
+using namespace std;
+
 CoMutex::CoMutex()
 {
     _value = 0;

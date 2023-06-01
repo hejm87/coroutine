@@ -2,15 +2,12 @@
 #define __COROUTINE_H__
 
 #include <memory>
-#include <future>
-#include <exception>
+#include <functional>
 
 #include "common/any.h"
-#include "common/any_func.h"
+//#include "common/any_func.h"
 #include "common/helper.h"
 #include "context/co_context.h"
-#include "co_executor.h"
-#include "co_schedule.h"
 
 // coroutine status
 enum {
@@ -40,47 +37,30 @@ struct CoParam
 	Any		value;
 };
 
-class Coroutine : std::enable_shared_from_this<Coroutine>
+class Coroutine// : std::enable_shared_from_this<Coroutine>
 {
 public:
-    Coroutine(int id) {
-		_id = id;
-		_status = CO_STATUS_IDLE;	
-		_ctx = g_ctx_handle->create_context(Coroutine::co_run, shared_from_this());
-	}
-    ~Coroutine() {
-		g_ctx_handle->release_context(_ctx);
-	}
+    Coroutine(int id);
+    ~Coroutine();
 
-	void set_func(const AnyFunc& f) {
-		_func = f;
-	}
+	void set_func(const std::function<void()>& f);
 
-    co_context_handle get_context() {
-        return _ctx;
-    } 
+    co_context_handle get_context();
 
-    void run() {
-		_result = _func();
-		_status = CO_STATUS_FINISH;
-	}
+    void run();
 
-	static void co_run(std::shared_ptr<void>& ptr) {
-		auto co_ptr = std::static_pointer_cast<Coroutine>(ptr);
-		while (!Singleton<CoSchedule>::get_instance()->is_set_end()) {
-			co_ptr->run();
-			Singleton<CoSchedule>::get_instance()->yield();
-		}
-	}
+	static void co_run(std::shared_ptr<void>& ptr);
 
 public:
 	int		_id;				// 协程id
-    int		_status;			// 协程状态
-	int		_suspend_status;	// 协程暂停状态
-	bool	_priority;			// 协程执行优先级
+    int		_status;			// 协程状�?
+	int		_suspend_status;	// 协程暂停状�?
+	bool	_priority;			// 协程执�?�优先级
 
-	AnyFunc _func;		// 协程执行函数
-	Any		_result;	// 协程执行结果
+	std::function<void()>	_func;	// 协程执�?�函�?
+
+//	AnyFunc _func;		// 协程执�?�函�?
+//	Any		_result;	// 协程执�?�结�?
 
 	CoParam	_param;
 

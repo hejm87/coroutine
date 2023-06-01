@@ -3,23 +3,20 @@
 
 #include <mutex>
 #include <atomic>
-#include <exception>
 #include <functional>
+#include <exception>
 #include <vector>
 #include "co_define.h"
 #include "co_helper.h"
 #include "co_exception.h"
-#include "common/any.h"
-#include "common/any_func.h"
 #include "co_common/co_tools.h"
 
 class CoTimer;
 class CoTimerId;
-class CoAwaiter;
 class CoExecutor;
 class Coroutine;
 
-extern thread_local shared_ptr<CoExecutor> g_co_executor;
+extern thread_local std::shared_ptr<CoExecutor> g_co_executor;
 
 class CoSchedule
 {
@@ -28,9 +25,7 @@ public:
 
     ~CoSchedule();
 
-    void create(const AnyFunc& func, bool priority = false);
-
-    CoAwaiter create_with_promise(const AnyFunc& func, bool priority = false);
+    void create(bool priority, const std::function<void()>& func);
 
     void sleep(int sleep_ms);
 
@@ -39,7 +34,7 @@ public:
     void resume(std::shared_ptr<Coroutine> co);
 
     // 定时器调度后使用协程执行定时器逻辑
-    CoTimerId set_timer(int delay_ms, const AnyFunc& func);
+    CoTimerId set_timer(int delay_ms, const std::function<void()>& func);
 
     bool stop_timer(const CoTimerId& timer_id);
 
@@ -61,7 +56,7 @@ public:
         _logger(level, buf);
     }
 
-    void free(shared_ptr<Coroutine> co) {
+    void free(std::shared_ptr<Coroutine> co) {
         _lst_free.push_back(co);
     }
 
@@ -71,7 +66,7 @@ public:
 
 private:
     bool get_free_co(std::shared_ptr<Coroutine> &co) {
-        lock_guard<mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutex);
         if (!_lst_free.front(co)) {
             return false;
         }
@@ -83,7 +78,7 @@ private:
     CoList  _lst_ready;     // 协程就绪队列
     CoList  _lst_suspend;   // 协程等待队列
 
-    CoTimer _timer;
+    CoTimer*    _timer;
 
     int     _stack_size;
     int     _max_co_size;

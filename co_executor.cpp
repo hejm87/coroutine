@@ -31,6 +31,8 @@ bool CoExecutor::run()
         }
         _is_running = false;
     });
+
+    _thread.detach();
 }
 
 void CoExecutor::stop(bool wait)

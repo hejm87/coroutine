@@ -5,6 +5,7 @@
 #include "common/maplist.h"
 
 const int DEF_STACK_SIZE = 4 * 1024;
+const int DEF_COROUTINE_COUNT = 10000;
 const int DEF_TIMER_THREAD_COUNT = 1;
 
 class Coroutine;

@@ -31,4 +31,13 @@ inline int get_stack_size() {
     return stack_size;
 }
 
+inline int get_coroutine_count() {
+    int co_count = DEF_COROUTINE_COUNT;
+    char* p = getenv("COROUTINE_COUNT");
+    if (p) {
+        co_count = atoi(p);
+    }
+    return co_count;
+}
+
 #endif

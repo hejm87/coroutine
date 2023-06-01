@@ -2,12 +2,13 @@
 #define __CO_CHANNEL_H__
 
 #include <algorithm>
-#include "../common/ring_queue.h"
-#include "../mutex/co_mutex.h"
 #include "../coroutine.h"
 #include "../co_define.h"
 #include "../co_schedule.h"
 #include "../co_exception.h"
+#include "../common/helper.h"
+#include "../common/ring_queue.h"
+#include "../mutex/co_mutex.h"
 
 template <class T>
 class CoChannel
@@ -134,7 +135,7 @@ public:
     void pop_with_cache(T& obj) {
         _mutex.lock();
         if (_queue->front(obj)) {
-            _queue->pop_front();
+            _queue->pop();
         } else {
             do {
                 auto cur_co = Singleton<CoSchedule>::get_instance()->get_cur_co();
@@ -161,7 +162,7 @@ public:
             if (co->_param.type != CO_PARAM_CHANNEL_SEND) {
                 throw CoException(CO_ERROR_UNKNOW);
             }
-            obj = co->_param.value;
+            obj = co->_param.value.AnyCast<T>();
             _mutex.unlock();
         } else {
             co = Singleton<CoSchedule>::get_instance()->get_cur_co();
@@ -179,7 +180,7 @@ public:
             if (co->_param.value.IsNull()) {
                 throw CoException(CO_ERROR_UNKNOW);
             }
-            obj = co->_param.value;
+            obj = co->_param.value.AnyCast<T>();
             co->_param.value.Reset();
         }
     }

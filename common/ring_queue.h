@@ -18,18 +18,26 @@ public:
         if (_cur_size == (int)_queue.size()) {
             return false;
         }   
-        _queue[_end++] = obj;
+        _queue[_end] = obj;
+        _end = ++_end % _queue.size();
         _cur_size++;
         return true;
     }
 
-    bool pop(T& obj) {
+    bool front(T& obj) {
         if (_cur_size == 0) {
             return false;
         }   
-        obj = _queue[_beg++];
-        _cur_size--;
+        obj = _queue[_beg];
         return true;
+    }
+
+    void pop() {
+        if (_cur_size == 0) {
+            return ;
+        }
+        _beg = ++_beg % _queue.size();
+        _cur_size--;
     }
 
     bool is_full() {

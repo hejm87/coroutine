@@ -23,6 +23,7 @@ CoExecutor::~CoExecutor()
 bool CoExecutor::run()
 {
     _thread = thread([this]() {
+        g_co_executor = shared_from_this();
         g_ctx_handle->init_context();
         while (!_is_set_end) {
             if (!on_execute()) {
@@ -31,7 +32,7 @@ bool CoExecutor::run()
         }
         _is_running = false;
     });
-
+    // xxxx 需要添加等待初始化设置完成
     _thread.detach();
 }
 
@@ -109,7 +110,9 @@ bool CoExecutor::on_execute()
     }
 
     _running_co = co;
+    printf("executor before swap_context\n");
     g_ctx_handle->swap_context(g_ctx_main, co->get_context());
+    printf("executor after swap_context\n");
     if (co->_status != CO_STATUS_SUSPEND && co->_status != CO_STATUS_FINISH) {
         throw CoException(CO_ERROR_COROUTINE_EXCEPTION);
     }

@@ -5,18 +5,18 @@
 #include "common/helper.h"
 
 enum {
-    CO_DEBUG = 0,
-    CO_INFO,
-    CO_WARN,
-    CO_ERROR,
-    CO_FATAL,
+    CO_LEVEL_DEBUG = 0,
+    CO_LEVEL_INFO,
+    CO_LEVEL_WARN,
+    CO_LEVEL_ERROR,
+    CO_LEVEL_FATAL,
 };
 
-#define CO_LOG_DEBUG(fmt, ...)  CO_LOG(CO_DEBUG, fmt, ##__VA_ARGS__)
-#define CO_LOG_INFO(fmt, ...)   CO_LOG(CO_INFO,  fmt, ##__VA_ARGS__)
-#define CO_LOG_WARN(fmt, ...)   CO_LOG(CO_WARN,  fmt, ##__VA_ARGS__)
-#define CO_LOG_ERROR(fmt, ...)  CO_LOG(CO_ERROR, fmt, ##__VA_ARGS__)
-#define CO_LOG_FATAL(fmt, ...)  CO_LOG(CO_FATAL, fmt, ##__VA_ARGS__)
+#define CO_LOG_DEBUG(fmt, ...)  CO_LOG(CO_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
+#define CO_LOG_INFO(fmt, ...)   CO_LOG(CO_LEVEL_INFO,  fmt, ##__VA_ARGS__)
+#define CO_LOG_WARN(fmt, ...)   CO_LOG(CO_LEVEL_WARN,  fmt, ##__VA_ARGS__)
+#define CO_LOG_ERROR(fmt, ...)  CO_LOG(CO_LEVEL_ERROR, fmt, ##__VA_ARGS__)
+#define CO_LOG_FATAL(fmt, ...)  CO_LOG(CO_LEVEL_FATAL, fmt, ##__VA_ARGS__)
 
 #define CO_LOG(level, fmt, ...) \
 { \

@@ -10,10 +10,14 @@ thread_local shared_ptr<CoExecutor> g_co_executor;
 
 CoSchedule::CoSchedule()
 {
+    _log_level = CO_LEVEL_INFO;
     _timer = new CoTimer;
 
     _stack_size = get_stack_size();
     _executor_count = get_executor_count();
+
+    printf("executor_count:%d\n", _executor_count);
+    printf("coroutine_count:%d\n", get_coroutine_count());
 
     for (int i = 0; i < _executor_count; i++) {
         auto ptr = shared_ptr<CoExecutor>(new CoExecutor);
@@ -23,7 +27,11 @@ CoSchedule::CoSchedule()
 
     for (int i = 0; i < get_coroutine_count(); i++) {
         auto ptr = shared_ptr<Coroutine>(new Coroutine(i));
+        if (!ptr->init()) {
+            throw CoException(CO_ERROR_INIT_ENV_FAIL);
+        }
         _lst_free.push_back(ptr);
+        _coroutines.push_back(ptr);
     }
 }
 
@@ -80,6 +88,7 @@ void CoSchedule::sleep(int sleep_ms)
             _lst_ready.push_front(co);
         });
     }
+    printf("co_id:%ld ready to swap_context\n", co->_id);
     g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
 
@@ -126,6 +135,7 @@ vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
         _lst_ready.pop_front();
         cos.push_back(co);
     }
+    return cos;
 }
 
 shared_ptr<Coroutine> CoSchedule::get_cur_co()

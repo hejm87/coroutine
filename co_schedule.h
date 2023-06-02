@@ -56,6 +56,14 @@ public:
         _logger(level, buf);
     }
 
+    std::shared_ptr<Coroutine> get_coroutine(int index) {
+        std::shared_ptr<Coroutine> ptr;
+        if (index >= 0 && index < (int)_coroutines.size()) {
+            ptr = _coroutines[index];
+        }
+        return ptr;
+    }
+
     void free(std::shared_ptr<Coroutine> co) {
         _lst_free.push_back(co);
     }
@@ -88,10 +96,13 @@ private:
 
     std::atomic<bool>    _is_set_end;
     std::vector<std::shared_ptr<CoExecutor>>  _executors;
+    std::vector<std::shared_ptr<Coroutine>>   _coroutines;
 
     std::mutex  _mutex;
 
     std::function<void(int, const char*)>  _logger;
+
+    int     _log_level;
 };
 
 #endif

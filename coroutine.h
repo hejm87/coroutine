@@ -5,7 +5,6 @@
 #include <functional>
 
 #include "common/any.h"
-//#include "common/any_func.h"
 #include "common/helper.h"
 #include "context/co_context.h"
 
@@ -37,11 +36,13 @@ struct CoParam
 	Any		value;
 };
 
-class Coroutine// : std::enable_shared_from_this<Coroutine>
+class Coroutine : public std::enable_shared_from_this<Coroutine>
 {
 public:
     Coroutine(int id);
     ~Coroutine();
+
+	bool init();
 
 	void set_func(const std::function<void()>& f);
 
@@ -49,10 +50,10 @@ public:
 
     void run();
 
-	static void co_run(std::shared_ptr<void>& ptr);
+	static void co_run(void* argv);
 
 public:
-	int		_id;				// 协程id
+	long	_id;				// 协程id
     int		_status;			// 协程状�?
 	int		_suspend_status;	// 协程暂停状�?
 	bool	_priority;			// 协程执�?�优先级

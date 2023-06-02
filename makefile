@@ -5,13 +5,14 @@ all: mkobj $(OBJS) make_lib make_test
 
 mkobj:
 	test -d ./obj || mkdir -p ./obj
+	test -d ./test || mkdir -p ./test
 	test -d $(LIB_DIR) || mkdir -p $(LIB_DIR)
 
 make_lib:
 	ar -rc $(LIB_DIR)/libco.a $(OBJS)
 
 make_test:
-	cd test && g++ -std=c++11 -g -o flow_test flow_test.cpp ../lib/libco.a -lpthread
+	cd test && rm -f flow_test && g++ -std=c++11 -g -o flow_test flow_test.cpp ../lib/libco.a -lpthread
 
 obj/co_timer.o: co_common/co_timer.cpp
 	g++ -std=c++11 -g -o $@ -c $<

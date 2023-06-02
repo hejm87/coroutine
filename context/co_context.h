@@ -4,7 +4,7 @@
 #include <memory>
 
 typedef void* co_context_handle;
-typedef void (*context_func)(std::shared_ptr<void>&);
+typedef void (*context_func)(void*);
 
 class CoContext
 {
@@ -12,7 +12,7 @@ public:
     virtual bool init_context() = 0;
     virtual bool swap_context(co_context_handle ctx_source, co_context_handle ctx_dest) = 0;
 
-    virtual co_context_handle create_context(context_func func, std::shared_ptr<void> argv) = 0;
+    virtual co_context_handle create_context(context_func func, void* argv) = 0;
     virtual void release_context(co_context_handle ctx) = 0;
 };
 

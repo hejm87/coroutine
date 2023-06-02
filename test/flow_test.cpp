@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-   // try {
+    try {
         for (int index = 0; index < 5; index++) {
             CoApi::create([index]() {
                 for (int i = 0; i < 10; i++) {
@@ -17,8 +17,8 @@ int main()
             });
         }
         while (1);
-   // } catch (exception& ex) {
-   //     printf("########## exception:%s\n", ex.what());
-   // }
+    } catch (exception& ex) {
+        printf("########## exception:%s\n", ex.what());
+    }
     return 0;
 }

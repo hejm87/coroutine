@@ -24,7 +24,7 @@ bool CoUContextHandle::swap_context(co_context_handle ctx_source, co_context_han
     return swapcontext((ucontext_t*)ctx_source, (ucontext_t*)ctx_dest) == 0 ? true : false;
 }
 
-co_context_handle CoUContextHandle::create_context(context_func func, shared_ptr<void> argv)
+co_context_handle CoUContextHandle::create_context(context_func func, void* argv)
 {
     int stack_size = get_stack_size();
 

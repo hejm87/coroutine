@@ -9,7 +9,7 @@ public:
     bool init_context();
     bool swap_context(co_context_handle ctx_source, co_context_handle ctx_dest);
 
-    co_context_handle create_context(context_func func, std::shared_ptr<void> argv);
+    co_context_handle create_context(context_func func, void* argv);
     void release_context(co_context_handle ctx);
 };
 

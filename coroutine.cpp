@@ -5,11 +5,18 @@
 Coroutine::Coroutine(int id) {
 	_id = id;
 	_status = CO_STATUS_IDLE;	
-	_ctx = g_ctx_handle->create_context(Coroutine::co_run, shared_from_this());
 }
 
 Coroutine::~Coroutine() {
 	g_ctx_handle->release_context(_ctx);
+}
+
+bool Coroutine::init() {
+	_ctx = g_ctx_handle->create_context(
+		Coroutine::co_run, 
+		reinterpret_cast<void*>(_id)
+	);
+	return true;
 }
 
 void Coroutine::set_func(const function<void()>& f) {
@@ -25,10 +32,14 @@ void Coroutine::run() {
 	_status = CO_STATUS_FINISH;
 }
 
-void Coroutine::co_run(std::shared_ptr<void>& ptr) {
-	auto co_ptr = std::static_pointer_cast<Coroutine>(ptr);
+void Coroutine::co_run(void* argv) {
+	auto index = reinterpret_cast<long>(argv);
+	auto co = Singleton<CoSchedule>::get_instance()->get_coroutine(index);
+	if (!co) {
+		throw CoException(CO_ERROR_INIT_ENV_FAIL);
+	}
 	while (!Singleton<CoSchedule>::get_instance()->is_set_end()) {
-		co_ptr->run();
+		co->run();
 		Singleton<CoSchedule>::get_instance()->yield();
 	}
 }

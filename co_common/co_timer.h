@@ -91,6 +91,14 @@ public:
         return expires;
     }
 
+    long get_latest_expire() {
+        xxxx
+    }
+
+    int size() {
+        return (int)_list.size();
+    }
+
 private:
     co_timer_list_t     _list;
     co_map_timer_list_t _map_list_iter;

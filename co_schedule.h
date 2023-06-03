@@ -6,6 +6,7 @@
 #include <functional>
 #include <exception>
 #include <vector>
+#include <condition_variable>
 #include "co_define.h"
 #include "co_helper.h"
 #include "co_exception.h"
@@ -33,7 +34,7 @@ public:
 
     void resume(std::shared_ptr<Coroutine> co);
 
-    // ¶¨Ê±Æ÷µ÷¶ÈºóÊ¹ÓÃÐ­³ÌÖ´ÐÐ¶¨Ê±Æ÷Âß¼­
+    // ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Èºï¿½Ê¹ï¿½ï¿½Ð­ï¿½ï¿½Ö´ï¿½Ð¶ï¿½Ê±ï¿½ï¿½ï¿½ß¼ï¿½
     CoTimerId set_timer(int delay_ms, const std::function<void()>& func);
 
     bool stop_timer(const CoTimerId& timer_id);
@@ -73,6 +74,8 @@ public:
     }
 
 private:
+    void timer_run();
+
     bool get_free_co(std::shared_ptr<Coroutine> &co) {
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_lst_free.front(co)) {
@@ -82,9 +85,9 @@ private:
     }
 
 private:
-    CoList  _lst_free;      // Ð­³Ì¿ÕÏÐ¶ÓÁÐ
-    CoList  _lst_ready;     // Ð­³Ì¾ÍÐ÷¶ÓÁÐ
-    CoList  _lst_suspend;   // Ð­³ÌµÈ´ý¶ÓÁÐ
+    CoList  _lst_free;      // Ð­ï¿½Ì¿ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½
+    CoList  _lst_ready;     // Ð­ï¿½Ì¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+    CoList  _lst_suspend;   // Ð­ï¿½ÌµÈ´ï¿½ï¿½ï¿½ï¿½ï¿½
 
     CoTimer*    _timer;
 
@@ -99,6 +102,7 @@ private:
     std::vector<std::shared_ptr<Coroutine>>   _coroutines;
 
     std::mutex  _mutex;
+    std::condition_variable _cv;
 
     std::function<void(int, const char*)>  _logger;
 

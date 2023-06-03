@@ -33,6 +33,10 @@ CoSchedule::CoSchedule()
         _lst_free.push_back(ptr);
         _coroutines.push_back(ptr);
     }
+
+    thread t = thread([this]() {
+
+    });
 }
 
 CoSchedule::~CoSchedule()
@@ -116,13 +120,16 @@ void CoSchedule::resume(shared_ptr<Coroutine> co)
 
 CoTimerId CoSchedule::set_timer(int delay_ms, const std::function<void()>& func)
 {
+    lock_guard<mutex> lock(_mutex);
     return _timer->set(delay_ms, [this, &func]() {
         create(true, func);
     });
+    _cv.notify_one();
 }
 
 bool CoSchedule::stop_timer(const CoTimerId& timer_id)
 {
+    lock_guard<mutex> lock(_mutex);
     _timer->cancel(timer_id);
 }
 
@@ -141,4 +148,11 @@ vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
 shared_ptr<Coroutine> CoSchedule::get_cur_co()
 {
     g_co_executor->get_running_co();
+}
+
+void CoSchedule::timer_run()
+{
+    while (_is_set_end) {
+
+    }
 }

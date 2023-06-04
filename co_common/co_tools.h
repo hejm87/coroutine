@@ -11,6 +11,15 @@ inline bool is_in_co_thread() {
     return g_ctx_main ? true : false;
 }
 
+inline int get_timer_thread_count() {
+    int count = DEF_TIMER_THREAD_COUNT;    
+    char* p = getenv("CO_TIMER_THREAD_COUNT");
+    if (p) {
+        count = atoi(p);
+    }
+    return count;
+}
+
 inline int get_executor_count() {
     int count;
     char* p = getenv("CO_EXECUTOR_COUNT");
@@ -23,21 +32,21 @@ inline int get_executor_count() {
 }
 
 inline int get_stack_size() {
-    int stack_size = DEF_STACK_SIZE;
+    int size = DEF_STACK_SIZE;
     char* p = getenv("CO_STACK_SIZE");
     if (p) {
-        stack_size = atoi(p);
+        size = atoi(p);
     }
-    return stack_size;
+    return size;
 }
 
 inline int get_coroutine_count() {
-    int co_count = DEF_COROUTINE_COUNT;
+    int count = DEF_COROUTINE_COUNT;
     char* p = getenv("COROUTINE_COUNT");
     if (p) {
-        co_count = atoi(p);
+        count = atoi(p);
     }
-    return co_count;
+    return count;
 }
 
 #endif

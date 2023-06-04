@@ -1,23 +1,26 @@
 #include <assert.h>
+#include <chrono>
 #include "coroutine.h"
 #include "co_executor.h"
 #include "common/helper.h"
 #include "co_common/co_timer.h"
 
 using namespace std;
+//using namespace std::chrono_literals;
 
 thread_local shared_ptr<CoExecutor> g_co_executor;
 
 CoSchedule::CoSchedule()
 {
     _log_level = CO_LEVEL_INFO;
-    _timer = new CoTimer;
+    _timer = new CoTimer(get_timer_thread_count());
 
     _stack_size = get_stack_size();
     _executor_count = get_executor_count();
 
-    printf("executor_count:%d\n", _executor_count);
-    printf("coroutine_count:%d\n", get_coroutine_count());
+    CO_LOG_DEBUG("executor_count:%d\n", _executor_count);
+    CO_LOG_DEBUG("timer_thread_count:%d\n", get_timer_thread_count());
+    CO_LOG_DEBUG("coroutine_count:%d\n", get_coroutine_count());
 
     for (int i = 0; i < _executor_count; i++) {
         auto ptr = shared_ptr<CoExecutor>(new CoExecutor);
@@ -33,10 +36,6 @@ CoSchedule::CoSchedule()
         _lst_free.push_back(ptr);
         _coroutines.push_back(ptr);
     }
-
-    thread t = thread([this]() {
-
-    });
 }
 
 CoSchedule::~CoSchedule()
@@ -52,11 +51,9 @@ void CoSchedule::create(bool priority, const function<void()>& func)
 {
     lock_guard<mutex> lock(_mutex);
     shared_ptr<Coroutine> co;
-    printf("########## CoSchedule::create, _lst_free.size:%d\n", _lst_free.size());
     if (!_lst_free.front(co)) {
         throw CoException(CO_ERROR_NO_RESOURCE);
     }
-    printf("########## CoSchedule::create, has free coroutine\n");
     _lst_free.pop_front();
 
     co->_func = func;
@@ -77,7 +74,6 @@ void CoSchedule::sleep(int sleep_ms)
     co->_status = CO_STATUS_SUSPEND;
     co->_suspend_status = CO_SUSPEND_SLEEP;
 
-    auto time = now_ms() + sleep_ms;
     {
         std::lock_guard<std::mutex> lock(_mutex);
         _lst_suspend.push_back(co);
@@ -92,7 +88,6 @@ void CoSchedule::sleep(int sleep_ms)
             _lst_ready.push_front(co);
         });
     }
-    printf("co_id:%ld ready to swap_context\n", co->_id);
     g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
 
@@ -110,6 +105,17 @@ void CoSchedule::yield(function<void()> do_after)
     g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
 
+void CoSchedule::release()
+{
+    auto co = g_co_executor->get_running_co();
+    co->_status = CO_STATUS_FINISH;
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _lst_free.push_back(co);
+    }
+    g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
+}
+
 void CoSchedule::resume(shared_ptr<Coroutine> co)
 {
     std::lock_guard<std::mutex> lock(_mutex);     
@@ -121,10 +127,9 @@ void CoSchedule::resume(shared_ptr<Coroutine> co)
 CoTimerId CoSchedule::set_timer(int delay_ms, const std::function<void()>& func)
 {
     lock_guard<mutex> lock(_mutex);
-    return _timer->set(delay_ms, [this, &func]() {
+    return _timer->set(delay_ms, [this, func] {
         create(true, func);
     });
-    _cv.notify_one();
 }
 
 bool CoSchedule::stop_timer(const CoTimerId& timer_id)
@@ -152,7 +157,5 @@ shared_ptr<Coroutine> CoSchedule::get_cur_co()
 
 void CoSchedule::timer_run()
 {
-    while (_is_set_end) {
-
-    }
+    ;
 }

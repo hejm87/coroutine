@@ -53,10 +53,8 @@ public:
 
     static void sleep(int sleep_ms) {
         if (!is_in_co_thread()) {
-            printf("goto normal sleep\n");
             usleep(sleep_ms);
         } else {
-            printf("goto coroutine sleep\n");
 			Singleton<CoSchedule>::get_instance()->sleep(sleep_ms);
         }
     }

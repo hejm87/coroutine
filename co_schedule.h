@@ -32,6 +32,8 @@ public:
 
     void yield(std::function<void()> do_after = nullptr);
 
+    void release();
+
     void resume(std::shared_ptr<Coroutine> co);
 
     // ��ʱ�����Ⱥ�ʹ��Э��ִ�ж�ʱ���߼�
@@ -48,13 +50,13 @@ public:
     }
 
     template <class... Args>
-    void logger(int level, const char* file, int line, const char* msg, Args... args)
+    void logger(int level, const char* msg, const char* file, int line, Args... args)
     {
         char buf[8192];
-        int size = sizeof(buf);
-        int offset = snprintf(buf, size, "[FILE:%s,LINE:%d] ", file, line);
-        snprintf(buf + offset, size - offset, msg, args...);
-        _logger(level, buf);
+        snprintf(buf, sizeof(buf), msg, file, line, args...);
+        if (_logger) {
+            _logger(level, buf);
+        }
     }
 
     std::shared_ptr<Coroutine> get_coroutine(int index) {

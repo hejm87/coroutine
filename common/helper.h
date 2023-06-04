@@ -1,7 +1,9 @@
 #ifndef __COMMON_HELPER_H__
 #define __COMMON_HELPER_H__
 
+#include <unistd.h>
 #include <sys/time.h>
+#include <sys/syscall.h>
 
 #define now_ms() \
 ({ \
@@ -9,6 +11,18 @@
     gettimeofday(&tv, NULL); \
     (tv.tv_sec * 1000 + tv.tv_usec / 1000); \
 })
+
+#define now_us() \
+({ \
+    struct timeval tv; \
+    gettimeofday(&tv, NULL); \
+	(tv.tv_sec * 1000000 + tv.tv_usec); \
+})
+
+inline pid_t gettid()
+{
+	return syscall(SYS_gettid);
+}
 
 // ½ø³Ìµ¥Àý
 template <class T>

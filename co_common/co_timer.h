@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include <functional>
+
 #include "../common/helper.h"
 #include "../co_schedule.h"
 
@@ -28,27 +29,55 @@ private:
     std::weak_ptr<std::function<void()>>  _ptr;
 };
 
-/*
-    typedef std::function<void()> fun_t;
-
-    auto f = []() {
-        printf("hello world\n");
-    };  
-    auto sp_fun = std::shared_ptr<fun_t>(new fun_t(f));
-    (*sp_fun)();
-*/
-
 class CoTimer
 {
 public:
+    CoTimer(int workers) {
+        for (int i = 0; i  < workers; i++) {
+            _workers.emplace_back([this] {
+                run();
+            });
+        }
+    }
+
+    ~CoTimer() {
+        stop();
+    }
+
+    void stop(bool wait = false) {
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (_is_set_end) {
+                return ;
+            }
+            _is_set_end = true;
+        }
+        for (auto& worker : _workers) {
+            if (wait) {
+                worker.join();
+            } else {
+                worker.detach();
+            }
+        }
+    }
+
     CoTimerId set(int delay_ms, const std::function<void()>& func) {
-        auto time = now_ms() + delay_ms;
+        std::lock_guard<std::mutex> lock(_mutex);
+        auto notify = true;
+        auto trigger = now_ms() + delay_ms;
+        if (_list.size() > 0 && trigger >= _list.begin()->first) {
+            notify = false;
+        }
         auto ptr = std::shared_ptr<std::function<void()>>(new std::function<void()>(func));
-        _map_list_iter[ptr] = _list.insert(make_pair(time, ptr));
+        _map_list_iter[ptr] = _list.insert(make_pair(trigger, ptr));
+        if (notify) {
+            _cv.notify_one();
+        }
         return CoTimerId(ptr);
     }
 
     bool cancel(const CoTimerId& id) {
+        std::lock_guard<std::mutex> lock(_mutex);
         auto ptr = id._ptr.lock();
         if (!ptr) {
             return false;
@@ -62,46 +91,58 @@ public:
         return true;
     }
 
-    std::vector<std::function<void()>> get_expires(int size) {
-        if (size <= 0) {
-            throw CoException(CO_ERROR_PARAM_INVALID);
-        }
-        std::vector<std::function<void()>> expires;
-        auto now = now_ms();
-        auto find_iter = _list.lower_bound(now);
-        do {
-            if (find_iter == _list.end()) {
-                break ;
-            }
-            auto del_end_iter = _list.begin();
-            for (auto iter = _list.begin(); iter != find_iter; iter++) {
-                del_end_iter = iter;
-                _map_list_iter.erase(iter->second);
-                expires.push_back(*(iter->second));
-                if (expires.size() >= size) {
-                    break ;
-                }
-            }
-            if (_list.begin() == del_end_iter) {
-                _list.erase(_list.begin());
-            } else {
-                _list.erase(_list.begin(), del_end_iter);
-            }
-        } while (0);
-        return expires;
-    }
-
-    long get_latest_expire() {
-        xxxx
-    }
-
     int size() {
         return (int)_list.size();
     }
 
 private:
+    void run() {
+        printf("[tid:%d] timer thread run\n", gettid());
+        while (1) {
+            int wait = -1;
+            std::function<void()> func;
+            {
+                std::lock_guard<std::mutex> lock(_mutex);
+                if (_is_set_end) {
+                    break ;
+                }
+                if (_list.size() > 0) {
+                    auto iter = _list.begin();
+                    func = *(iter->second);
+                    _map_list_iter.erase(iter->second);
+                    _list.erase(iter);
+                }
+            }
+            if (func) {
+                func();
+                continue ;
+            }
+            std::unique_lock<std::mutex> lock(_mutex);
+            if (wait >= 0) {
+                _cv.wait_for(lock, std::chrono::milliseconds(500));
+            } else {
+                _cv.wait(lock);
+            }
+        }    
+    }
+
+//    long get_latest_expire() {
+//        if (!_list.size()) {
+//            return 0;
+//        }
+//        return _list.begin()->first;
+//    }
+
+private:
     co_timer_list_t     _list;
     co_map_timer_list_t _map_list_iter;
+
+    bool _is_set_end;
+
+    std::vector<std::thread> _workers;
+
+    std::mutex _mutex;
+    std::condition_variable _cv;
 };
 
 #endif

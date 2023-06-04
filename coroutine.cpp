@@ -40,6 +40,6 @@ void Coroutine::co_run(void* argv) {
 	}
 	while (!Singleton<CoSchedule>::get_instance()->is_set_end()) {
 		co->run();
-		Singleton<CoSchedule>::get_instance()->yield();
+		Singleton<CoSchedule>::get_instance()->release();
 	}
 }

@@ -86,7 +86,8 @@ public:
             _queue->push(obj);
         } else {
             do {
-                auto cur_co = Singleton<CoSchedule>::get_instance()->get_cur_co();
+                auto cur_co = Singleton<CoSchedule>::get_instance()->get_running_co();
+                cur_co->_suspend_status = CO_SUSPEND_CHANNEL;
                 _lst_send_waits.push_back(cur_co);
                 Singleton<CoSchedule>::get_instance()->yield([this]() {
                     _mutex.unlock();
@@ -116,6 +117,7 @@ public:
             Singleton<CoSchedule>::get_instance()->resume(co);
         } else {
             Singleton<CoSchedule>::get_instance()->resume(co);
+            co->_suspend_status = CO_SUSPEND_CHANNEL;
             co->_param.type = CO_PARAM_CHANNEL_SEND;
             co->_param.value = obj;
             _lst_send_waits.push_back(co);
@@ -138,7 +140,8 @@ public:
             _queue->pop();
         } else {
             do {
-                auto cur_co = Singleton<CoSchedule>::get_instance()->get_cur_co();
+                auto cur_co = Singleton<CoSchedule>::get_instance()->get_running_co();
+                cur_co->_suspend_status = CO_SUSPEND_CHANNEL;
                 _lst_recv_waits.push_back(cur_co);
                 Singleton<CoSchedule>::get_instance()->yield([this]() {
                     _mutex.unlock();
@@ -165,7 +168,7 @@ public:
             obj = co->_param.value.AnyCast<T>();
             _mutex.unlock();
         } else {
-            co = Singleton<CoSchedule>::get_instance()->get_cur_co();
+            co = Singleton<CoSchedule>::get_instance()->get_running_co();
             co->_param.type = CO_PARAM_CHANNEL_RECV;
             co->_param.value.Reset();
             _lst_recv_waits.push_back(co);

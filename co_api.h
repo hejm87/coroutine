@@ -58,6 +58,18 @@ public:
 			Singleton<CoSchedule>::get_instance()->sleep(sleep_ms);
         }
     }
+
+    static int getcid() {
+        if (!is_in_co_thread()) {
+            throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
+        }
+        auto co = Singleton<CoSchedule>::get_instance()->get_running_co();
+        if (!co) {
+            CO_LOG_DEBUG("############ tid:%d, getcid, co is invalid", gettid());
+        }
+        return co->_id;
+        //return Singleton<CoSchedule>::get_instance()->get_running_co()->_id;
+    }
 };
 
 #endif

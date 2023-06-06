@@ -18,9 +18,9 @@ CoSchedule::CoSchedule()
     _stack_size = get_stack_size();
     _executor_count = get_executor_count();
 
-    CO_LOG_DEBUG("executor_count:%d\n", _executor_count);
-    CO_LOG_DEBUG("timer_thread_count:%d\n", get_timer_thread_count());
-    CO_LOG_DEBUG("coroutine_count:%d\n", get_coroutine_count());
+    CO_LOG_DEBUG("executor_count:%d", _executor_count);
+    CO_LOG_DEBUG("timer_thread_count:%d", get_timer_thread_count());
+    CO_LOG_DEBUG("coroutine_count:%d", get_coroutine_count());
 
     for (int i = 0; i < _executor_count; i++) {
         auto ptr = shared_ptr<CoExecutor>(new CoExecutor);
@@ -78,13 +78,10 @@ void CoSchedule::sleep(int sleep_ms)
         std::lock_guard<std::mutex> lock(_mutex);
         _lst_suspend.push_back(co);
         _timer->set(sleep_ms, [this, &co]() {
+            CO_LOG_DEBUG("############## cid:%d sleep finish", co->_id);
             std::lock_guard<std::mutex> lock(_mutex);
-            if (_lst_suspend.is_exist(co)) {
-                _lst_suspend.remove(co);
-            } else {
-                CO_LOG_ERROR("co_id:%d not in suspend list", co->_id);
-                assert(false);
-            }
+            assert(_lst_suspend.is_exist(co));
+            _lst_suspend.remove(co);
             _lst_ready.push_front(co);
         });
     }
@@ -105,6 +102,17 @@ void CoSchedule::yield(function<void()> do_after)
     g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
 
+void CoSchedule::suspend()
+{
+    auto co = g_co_executor->get_running_co();
+    co->_status = CO_STATUS_SUSPEND;
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _lst_suspend.push_back(co);
+    }
+    g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
+}
+
 void CoSchedule::release()
 {
     auto co = g_co_executor->get_running_co();
@@ -120,6 +128,7 @@ void CoSchedule::resume(shared_ptr<Coroutine> co)
 {
     std::lock_guard<std::mutex> lock(_mutex);     
     assert(_lst_suspend.is_exist(co));
+    co->_status = CO_STATUS_READY;
     _lst_suspend.remove(co);
     _lst_ready.push_front(co);
 }
@@ -150,12 +159,7 @@ vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
     return cos;
 }
 
-shared_ptr<Coroutine> CoSchedule::get_cur_co()
+shared_ptr<Coroutine> CoSchedule::get_running_co()
 {
-    g_co_executor->get_running_co();
-}
-
-void CoSchedule::timer_run()
-{
-    ;
+    return g_co_executor->get_running_co();
 }

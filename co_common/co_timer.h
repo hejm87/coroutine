@@ -97,7 +97,6 @@ public:
 
 private:
     void run() {
-        printf("[tid:%d] timer thread run\n", gettid());
         while (1) {
             int wait = -1;
             std::function<void()> func;

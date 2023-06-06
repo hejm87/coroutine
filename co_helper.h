@@ -20,7 +20,9 @@ enum {
 
 #define CO_LOG(level, fmt, ...) \
 { \
-    Singleton<CoSchedule>::get_instance()->logger(level, "[FILE:%s,LINE:%d]"#fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
+    printf(fmt, ##__VA_ARGS__); \
+    printf("\n"); \
 }
 
+//    Singleton<CoSchedule>::get_instance()->logger(level, "[FILE:%s,LINE:%d]" fmt, __FILE__, __LINE__, ##__VA_ARGS__);
 #endif

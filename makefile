@@ -13,6 +13,7 @@ make_lib:
 
 make_test:
 	cd test && rm -f flow_test && g++ -std=c++11 -g -o flow_test flow_test.cpp ../lib/libco.a -lpthread
+	cd test && rm -f mutex_test && g++ -std=c++11 -g -o mutex_test mutex_test.cpp ../obj/co_mutex.o ../lib/libco.a -lpthread
 
 obj/co_timer.o: co_common/co_timer.cpp
 	g++ -std=c++11 -g -o $@ -c $<

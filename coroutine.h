@@ -27,6 +27,8 @@ enum {
 // coroutine suspend type
 enum {
 	CO_SUSPEND_SLEEP= 0,
+	CO_SUSPEND_LOCK,
+	CO_SUSPEND_CHANNEL,
 	CO_SUSPEND_IO_BLOCK,
 };
 
@@ -53,19 +55,14 @@ public:
 	static void co_run(void* argv);
 
 public:
-	long	_id;				// 协程id
+	int		_id;				// 协程id
     int		_status;			// 协程状�?
 	int		_suspend_status;	// 协程暂停状�?
 	bool	_priority;			// 协程执�?�优先级
 
 	std::function<void()>	_func;	// 协程执�?�函�?
 
-//	AnyFunc _func;		// 协程执�?�函�?
-//	Any		_result;	// 协程执�?�结�?
-
 	CoParam	_param;
-
-//	weak_ptr<CoExecutor>	_co_executor;
 
 private:
     co_context_handle		_ctx;

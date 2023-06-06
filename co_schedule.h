@@ -32,6 +32,8 @@ public:
 
     void yield(std::function<void()> do_after = nullptr);
 
+    void suspend();
+
     void release();
 
     void resume(std::shared_ptr<Coroutine> co);
@@ -41,7 +43,7 @@ public:
 
     bool stop_timer(const CoTimerId& timer_id);
 
-    std::shared_ptr<Coroutine> get_cur_co();
+    std::shared_ptr<Coroutine> get_running_co();
 
     std::vector<std::shared_ptr<Coroutine>> get_global_co(int size = 1);
 
@@ -76,8 +78,6 @@ public:
     }
 
 private:
-    void timer_run();
-
     bool get_free_co(std::shared_ptr<Coroutine> &co) {
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_lst_free.front(co)) {

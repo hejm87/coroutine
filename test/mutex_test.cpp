@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "../co_api.h"
 #include "../mutex/co_mutex.h"
 #include "test_define.h"
@@ -8,6 +9,7 @@ using namespace std;
 
 int main()
 {
+	printf("pid:%d\n", getpid());
     Singleton<CoSchedule>::get_instance()->set_logger(test_logger);
     try {
         int value = 100;
@@ -49,7 +51,9 @@ int main()
                 }
             });
         }
-        while (value != 0);
+        while (value != 0) {
+            sleep(1);
+        }
         printf("########### test finish\n");
     } catch (exception& ex) {
         printf("exception:%s\n", ex.what());

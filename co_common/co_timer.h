@@ -79,6 +79,7 @@ public:
         auto ptr = std::shared_ptr<std::function<void()>>(new std::function<void()>(func));
         _map_list_iter[ptr] = _list.insert(make_pair(trigger, ptr));
         if (notify) {
+            printf("[%s]tid:%d, cid:%d timer notify\n", date_ms().c_str(), gettid(), co->_id);
             _cv.notify_one();
         }
         return CoTimerId(ptr);
@@ -105,6 +106,7 @@ public:
 
 private:
     void run() {
+        printf("[%s]########## tid:%d timer thread running\n", date_ms().c_str(), gettid());
         while (1) {
             int wait = -1;
             auto now = now_ms();
@@ -132,8 +134,10 @@ private:
             }
             std::unique_lock<std::mutex> lock(_mutex);
             if (wait >= 0) {
+                printf("[%s]########### tid:%d timer thread wait %dms\n", date_ms().c_str(), gettid(), wait);
                 _cv.wait_for(lock, std::chrono::milliseconds(wait));
             } else {
+                printf("[%s]########### tid:%d timer thread wait\n", date_ms().c_str(), gettid());
                 _cv.wait(lock);
             }
         }    

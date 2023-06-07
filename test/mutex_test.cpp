@@ -15,18 +15,37 @@ int main()
         for (int i = 0; i < 2; i++) {
             CoApi::create([&mutex, &value] {
                 while (1) {
+                    printf(
+                        "[%s]tid:%d, cid:%d prepare lock\n", 
+                        date_ms().c_str(), 
+                        gettid(), 
+                        CoApi::getcid()
+                    );
                     mutex.lock();
                     if (value <= 0) {
                         break ;
                     }
-                    CO_LOG_INFO(
-                        "tid:%d, cid:%d get ticket, left %d", 
+                    printf(
+                        "[%s]tid:%d, cid:%d get ticket, left %d\n", 
+                        date_ms().c_str(),
                         gettid(),
                         CoApi::getcid(),
                         --value
                     );
                     mutex.unlock();
-                    CoApi::sleep(10);
+                    printf(
+                        "[%s]tid:%d, cid:%d unlock\n", 
+                        date_ms().c_str(), 
+                        gettid(), 
+                        CoApi::getcid()
+                    );
+                    CoApi::sleep(2);
+                    printf(
+                        "[%s]tid:%d, cid:%d after sleep\n", 
+                        date_ms().c_str(), 
+                        gettid(), 
+                        CoApi::getcid()
+                    );
                 }
             });
         }

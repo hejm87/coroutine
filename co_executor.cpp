@@ -24,11 +24,10 @@ bool CoExecutor::run()
 {
     _thread = thread([this]() {
         g_co_executor = shared_from_this();
-        CO_LOG_DEBUG("########### tid:%d CoExecutor running, ptr:%p", gettid(), g_co_executor.get());
         g_ctx_handle->init_context();
         while (!_is_set_end) {
             if (!on_execute()) {
-                sleep(1);
+                usleep(100);
             }
         }
         _is_running = false;
@@ -109,20 +108,39 @@ bool CoExecutor::on_execute()
     if (!get_ready_co(co)) {
         return false;
     }
-    CO_LOG_DEBUG("######## tid:%d, cid:%d, run", gettid(), co->_id);
+    printf("[%s]tid:%d, cid:%d, run\n", date_ms().c_str(), gettid(), co->_id);
     co->_status = CO_STATUS_RUNNING;
     _running_co = co;
+    printf(
+        "[%s]tid:%d, cid:%d, status:%d, swap_context before\n", 
+        date_ms().c_str(),
+        gettid(), 
+        co->_id, 
+        co->_status
+    );
     g_ctx_handle->swap_context(g_ctx_main, co->get_context());
-    if (co->_status != CO_STATUS_SUSPEND && co->_status != CO_STATUS_FINISH) {
-        CO_LOG_DEBUG("######### EXCEPTION|tid:%d, cid:%d, status:%d", gettid(), co->_id, co->_status);
-        throw CoException(CO_ERROR_COROUTINE_EXCEPTION);
-    }
+  //  printf(
+  //      "[%s]tid:%d, cid:%d, status:%d, swap_context after\n", 
+  //      date_ms().c_str(),
+  //      gettid(), 
+  //      co->_id, 
+  //      co->_status
+  //  );
+  //  if (co->_status != CO_STATUS_SUSPEND && co->_status != CO_STATUS_FINISH) {
+  //      printf(
+  //          "[%s]EXCEPTION|tid:%d, cid:%d, status:%d\n", 
+  //          date_ms().c_str(),
+  //          gettid(), 
+  //          co->_id, 
+  //          co->_status
+  //      );
+  //      throw CoException(CO_ERROR_COROUTINE_EXCEPTION);
+  //  }
 
-    CO_LOG_DEBUG("######## tid:%d, cid:%d, release", gettid(), co->_id);
-    if (co->_status == CO_STATUS_FINISH) {
-        co->_status = CO_STATUS_IDLE;
-        Singleton<CoSchedule>::get_instance()->free(co);
-    }   
+  //  if (co->_status == CO_STATUS_FINISH) {
+  //      co->_status = CO_STATUS_IDLE;
+  //      Singleton<CoSchedule>::get_instance()->free(co);
+  //  }   
     return true;
 }
 

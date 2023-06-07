@@ -62,9 +62,17 @@ public:
     }
 
     CoTimerId set(int delay_ms, const std::function<void()>& func) {
-        std::lock_guard<std::mutex> lock(_mutex);
         auto notify = true;
         auto trigger = now_ms() + delay_ms;
+        auto co = Singleton<CoSchedule>::get_instance()->get_running_co();
+        printf(
+            "[%s]tid:%d, cid:%d set timer sleep, wake time:%s\n", 
+            date_ms().c_str(), 
+            gettid(), 
+            co->_id,
+            date_ms(trigger).c_str()
+        );
+        std::lock_guard<std::mutex> lock(_mutex);
         if (_list.size() > 0 && trigger >= _list.begin()->first) {
             notify = false;
         }
@@ -99,14 +107,20 @@ private:
     void run() {
         while (1) {
             int wait = -1;
+            auto now = now_ms();
             std::function<void()> func;
             {
                 std::lock_guard<std::mutex> lock(_mutex);
                 if (_is_set_end) {
                     break ;
                 }
-                if (_list.size() > 0) {
+                if (_list.size() > 0 && _list.begin()->first >= now) {
                     auto iter = _list.begin();
+                    printf(
+                        "############ timer, first_ms:%s, now:%s\n", 
+                        date_ms(iter->first).c_str(), 
+                        date_ms(now).c_str()
+                    );
                     func = *(iter->second);
                     _map_list_iter.erase(iter->second);
                     _list.erase(iter);
@@ -118,7 +132,7 @@ private:
             }
             std::unique_lock<std::mutex> lock(_mutex);
             if (wait >= 0) {
-                _cv.wait_for(lock, std::chrono::milliseconds(500));
+                _cv.wait_for(lock, std::chrono::milliseconds(wait));
             } else {
                 _cv.wait(lock);
             }

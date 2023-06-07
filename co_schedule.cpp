@@ -78,7 +78,7 @@ void CoSchedule::sleep(int sleep_ms)
         std::lock_guard<std::mutex> lock(_mutex);
         _lst_suspend.push_back(co);
         _timer->set(sleep_ms, [this, &co]() {
-            CO_LOG_DEBUG("############## cid:%d sleep finish", co->_id);
+            printf("[%s]cid:%d sleep finish\n", date_ms().c_str(), co->_id);
             std::lock_guard<std::mutex> lock(_mutex);
             assert(_lst_suspend.is_exist(co));
             _lst_suspend.remove(co);

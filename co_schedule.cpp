@@ -39,14 +39,10 @@ CoSchedule::CoSchedule()
 
 CoSchedule::~CoSchedule()
 {
-    printf("############ goto ~CoSchedule\n");
     _is_set_end = true;
     for (auto& item : _executors) {
         item->stop();
     }
-    printf("############ goto ~CoSchedule, all executor stop\n");
-    _coroutines.clear();
-    _executors.clear();
     delete _timer;
 }
 

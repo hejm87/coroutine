@@ -38,7 +38,7 @@ struct CoParam
 	Any		value;
 };
 
-class Coroutine : public std::enable_shared_from_this<Coroutine>
+class Coroutine// : public std::enable_shared_from_this<Coroutine>
 {
 public:
     Coroutine(int id);

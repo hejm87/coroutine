@@ -13,6 +13,10 @@ public:
 		;
 	}
 
+	~MapList() {
+        printf("############## release MapList, pt:%p\n", this);
+    }
+
     MapList(MapList&& obj) {
         std::swap(_list, obj._list);
         std::swap(_map_list_iter, obj._map_list_iter);
@@ -98,8 +102,8 @@ public:
 private:
     typedef typename std::list<T>::iterator list_iter_t;
 
-    std::list<T>    _list;
     std::map<T, list_iter_t>    _map_list_iter;
+    std::list<T>    _list;
 };
 
 #endif

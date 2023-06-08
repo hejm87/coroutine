@@ -41,7 +41,6 @@ public:
     }
 
     ~CoTimer() {
-        printf("############ goto ~CoTimer\n");
         stop();
     }
 
@@ -127,18 +126,6 @@ private:
                 if (_is_set_end) {
                     break ;
                 }
-               // if (_list.size() > 0 && _list.begin()->first >= now) {
-               //     auto iter = _list.begin();
-               //     printf(
-               //         "############ timer, first_ms:%s, now:%s\n", 
-               //         date_ms(iter->first).c_str(), 
-               //         date_ms(now).c_str()
-               //     );
-               //     func = *(iter->second);
-               //     _map_list_iter.erase(iter->second);
-               //     _list.erase(iter);
-               // }
-
                 if (_list.size() > 0) {
                     if (now >= _list.begin()->first) {
                         auto iter = _list.begin();
@@ -170,6 +157,7 @@ private:
                 printf("[%s]########### tid:%d timer after thread wait\n", date_ms().c_str(), gettid());
             }
         }    
+        printf("+++++++++++++++ timer thread is terminate\n");
     }
 
 //    long get_latest_expire() {

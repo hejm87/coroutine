@@ -87,9 +87,9 @@ private:
     }
 
 private:
-    CoList  _lst_free;      // Э�̿��ж���
-    CoList  _lst_ready;     // Э�̾�������
-    CoList  _lst_suspend;   // Э�̵ȴ�����
+    CoList  _lst_free;
+    CoList  _lst_ready;
+    CoList  _lst_suspend;
 
     CoTimer*    _timer;
 

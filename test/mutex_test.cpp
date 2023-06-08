@@ -57,5 +57,7 @@ int main()
         printf("########### test finish\n");
     } catch (exception& ex) {
         printf("exception:%s\n", ex.what());
-    }    
+    }
+    printf("########## test end\n");
+    return 0;
 }

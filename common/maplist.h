@@ -13,10 +13,6 @@ public:
 		;
 	}
 
-	~MapList() {
-		;
-	}
-
     MapList(MapList&& obj) {
         std::swap(_list, obj._list);
         std::swap(_map_list_iter, obj._map_list_iter);

@@ -41,6 +41,7 @@ public:
     }
 
     ~CoTimer() {
+        printf("############ goto ~CoTimer\n");
         stop();
     }
 
@@ -51,6 +52,7 @@ public:
                 return ;
             }
             _is_set_end = true;
+            _cv.notify_all();
         }
         for (auto& worker : _workers) {
             if (wait) {
@@ -65,23 +67,32 @@ public:
         auto notify = true;
         auto trigger = now_ms() + delay_ms;
         auto co = Singleton<CoSchedule>::get_instance()->get_running_co();
-        printf(
-            "[%s]tid:%d, cid:%d set timer sleep, wake time:%s\n", 
-            date_ms().c_str(), 
-            gettid(), 
-            co->_id,
-            date_ms(trigger).c_str()
-        );
         std::lock_guard<std::mutex> lock(_mutex);
         if (_list.size() > 0 && trigger >= _list.begin()->first) {
+            printf(
+                "++++++++ [%s]tid:%d, cid:%d not notify, size:%ld, trigger:%ld, first:%ld\n", 
+                date_ms().c_str(),
+                gettid(),
+                co->_id,
+                _list.size(),
+                trigger,
+                _list.begin()->first
+            );
             notify = false;
         }
         auto ptr = std::shared_ptr<std::function<void()>>(new std::function<void()>(func));
         _map_list_iter[ptr] = _list.insert(make_pair(trigger, ptr));
         if (notify) {
-            printf("[%s]tid:%d, cid:%d timer notify\n", date_ms().c_str(), gettid(), co->_id);
             _cv.notify_one();
         }
+        printf(
+            "[%s]tid:%d, cid:%d set timer sleep, waitup_time:%s, notify:%s\n", 
+            date_ms().c_str(),
+            gettid(),
+            co->_id,
+            date_ms(trigger).c_str(),
+            notify ? "true" : "false"
+        );
         return CoTimerId(ptr);
     }
 
@@ -116,16 +127,32 @@ private:
                 if (_is_set_end) {
                     break ;
                 }
-                if (_list.size() > 0 && _list.begin()->first >= now) {
-                    auto iter = _list.begin();
-                    printf(
-                        "############ timer, first_ms:%s, now:%s\n", 
-                        date_ms(iter->first).c_str(), 
-                        date_ms(now).c_str()
-                    );
-                    func = *(iter->second);
-                    _map_list_iter.erase(iter->second);
-                    _list.erase(iter);
+               // if (_list.size() > 0 && _list.begin()->first >= now) {
+               //     auto iter = _list.begin();
+               //     printf(
+               //         "############ timer, first_ms:%s, now:%s\n", 
+               //         date_ms(iter->first).c_str(), 
+               //         date_ms(now).c_str()
+               //     );
+               //     func = *(iter->second);
+               //     _map_list_iter.erase(iter->second);
+               //     _list.erase(iter);
+               // }
+
+                if (_list.size() > 0) {
+                    if (now >= _list.begin()->first) {
+                        auto iter = _list.begin();
+                        printf(
+                            "########### timer now trigger, first_ms:%s, now:%s\n", 
+                            date_ms(iter->first).c_str(),
+                            date_ms(now).c_str()
+                        );
+                        func = *(iter->second);
+                        _map_list_iter.erase(iter->second);
+                        _list.erase(iter);
+                    } else {
+                        wait = _list.begin()->first - now;
+                    }
                 }
             }
             if (func) {
@@ -134,11 +161,13 @@ private:
             }
             std::unique_lock<std::mutex> lock(_mutex);
             if (wait >= 0) {
-                printf("[%s]########### tid:%d timer thread wait %dms\n", date_ms().c_str(), gettid(), wait);
+                printf("[%s]########### tid:%d timer before thread wait %dms\n", date_ms().c_str(), gettid(), wait);
                 _cv.wait_for(lock, std::chrono::milliseconds(wait));
+                printf("[%s]########### tid:%d timer after thread wait %dms\n", date_ms().c_str(), gettid(), wait);
             } else {
-                printf("[%s]########### tid:%d timer thread wait\n", date_ms().c_str(), gettid());
+                printf("[%s]########### tid:%d timer before thread wait\n", date_ms().c_str(), gettid());
                 _cv.wait(lock);
+                printf("[%s]########### tid:%d timer after thread wait\n", date_ms().c_str(), gettid());
             }
         }    
     }

@@ -15,6 +15,7 @@ CoExecutor::CoExecutor()
 
 CoExecutor::~CoExecutor()
 {
+    printf("############## goto ~CoExecutor, tid:%d\n", gettid());
     if (_is_running) {
         stop(true);
     }
@@ -41,6 +42,7 @@ void CoExecutor::stop(bool wait)
     set_end();
     if (wait) {
         wait_util_stop();
+        _is_running = false;
     }
 }
 

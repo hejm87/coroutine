@@ -8,4 +8,4 @@
 
 
 遗留问题：
-1. 跑mutex_test半数会出现coredump
+1. 跑mutex_test半数会出现coredump --> 发现都是获取完最后一个ticket后coredump

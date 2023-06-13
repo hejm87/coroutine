@@ -69,12 +69,17 @@ public:
         return ptr;
     }
 
-   // void free(std::shared_ptr<Coroutine> co) {
-   //     _lst_free.push_back(co);
-   // }
-
     bool is_set_end() {
         return _is_set_end;
+    }
+
+    void append_ready_list(const std::vector<std::shared_ptr<Coroutine>>& cos) {
+        if (cos.size() > 0) {
+            std::lock_guard<std::mutex> lock(_mutex);
+            for (auto& item : cos) {
+                _lst_ready.push_front(item);
+            }
+        }
     }
 
 private:

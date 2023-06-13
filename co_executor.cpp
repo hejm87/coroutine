@@ -59,28 +59,18 @@ bool CoExecutor::wait_util_stop()
     _thread.join();
     return true;
 }
-/*
-void CoExecutor::put(shared_ptr<Coroutine> co)
-{
-    lock_guard<mutex> lock(_mutex);
-    _lst_ready.push_back(co);
-}
 
 void CoExecutor::sleep(int sleep_ms)
 {
-    if (sleep_ms <= 0) {
-        return ;
+    auto trigger = now_ms();
+    if (sleep_ms > 0) {
+        trigger += sleep_ms;
     }
     lock_guard<mutex> lock(_mutex);
-    auto co = _running_co;
-    auto delay = now_ms() + sleep_ms;
-    _lst_timer.insert([this, co]() {
-        lock_guard<mutex> lock(_mutex);
-        _lst_wait.remove(co);
-        _lst_ready.push_front(co);
-    }, delay, 0);
+    _lst_sleep.insert(make_pair(trigger, _running_co));
 }
 
+/*
 void CoExecutor::yield(function<void()> do_after)
 {
     _running_co->_status = CO_STATUS_READY;
@@ -109,6 +99,23 @@ void CoExecutor::set_end()
     _is_set_end = true;
 }
 
+bool CoExecutor::on_awake()
+{
+    std::vector<std::shared_ptr<Coroutine>> awake_cos;
+    {
+        lock_guard<mutex> lock(_mutex);
+        auto find_iter = _lst_sleep.upper_bound(now_ms());
+        if (find_iter == _lst_sleep.end()) {
+            return false;
+        }
+        for (auto iter = _lst_sleep.begin(); iter < find_iter; iter++) {
+            awake_cos.push_back(iter->second);
+        }
+    }
+    Singleton<CoSchedule>::get_instance()->append_ready_list(awake_cos);
+    return !awake_cos.empty() ? true : false;
+}
+
 bool CoExecutor::on_execute()
 {
     shared_ptr<Coroutine> co;
@@ -127,28 +134,6 @@ bool CoExecutor::on_execute()
         co->_status
     );
     g_ctx_handle->swap_context(g_ctx_main, co->get_context());
-  //  printf(
-  //      "[%s]tid:%d, cid:%d, status:%d, swap_context after\n", 
-  //      date_ms().c_str(),
-  //      gettid(), 
-  //      co->_id, 
-  //      co->_status
-  //  );
-  //  if (co->_status != CO_STATUS_SUSPEND && co->_status != CO_STATUS_FINISH) {
-  //      printf(
-  //          "[%s]EXCEPTION|tid:%d, cid:%d, status:%d\n", 
-  //          date_ms().c_str(),
-  //          gettid(), 
-  //          co->_id, 
-  //          co->_status
-  //      );
-  //      throw CoException(CO_ERROR_COROUTINE_EXCEPTION);
-  //  }
-
-  //  if (co->_status == CO_STATUS_FINISH) {
-  //      co->_status = CO_STATUS_IDLE;
-  //      Singleton<CoSchedule>::get_instance()->free(co);
-  //  }   
     return true;
 }
 

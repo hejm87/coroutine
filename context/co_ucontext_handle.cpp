@@ -29,7 +29,7 @@ co_context_handle CoUContextHandle::create_context(context_func func, void* argv
     int stack_size = get_stack_size();
 
     auto ctx = (ucontext_t*)malloc(sizeof(ucontext_t));
-    auto res = getcontext(ctx);
+    getcontext(ctx);
 
     ctx->uc_stack.ss_sp = malloc(stack_size);
     ctx->uc_stack.ss_size = stack_size;

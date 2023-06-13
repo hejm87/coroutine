@@ -23,18 +23,23 @@ CoExecutor::~CoExecutor()
 
 bool CoExecutor::run()
 {
-    _thread = thread([this]() {
-        g_co_executor = shared_from_this();
+   // auto ptr = shared_from_this();
+    auto ptr = this;
+    _thread = move(thread([ptr]() {
+        ptr->_is_running = true;
+        g_co_executor = ptr;
         g_ctx_handle->init_context();
-        while (!_is_set_end) {
-            if (!on_execute()) {
+        while (!ptr->_is_set_end) {
+            if (!ptr->on_execute()) {
                 usleep(100);
             }
         }
-        _is_running = false;
-    });
+        ptr->_is_running = false;
+        printf("[%s]tid:%d CoExecutor thread is exit\n", date_ms().c_str(), gettid());
+    }));
     // xxxx 需要添加等待初始化设置完成
-    _thread.detach();
+   // _thread.detach();
+    return true;
 }
 
 void CoExecutor::stop(bool wait)
@@ -107,6 +112,7 @@ void CoExecutor::set_end()
 bool CoExecutor::on_execute()
 {
     shared_ptr<Coroutine> co;
+    printf("[%s]tid:%d, on_execute, ptr:%p\n", date_ms().c_str(), gettid(), this);
     if (!get_ready_co(co)) {
         return false;
     }

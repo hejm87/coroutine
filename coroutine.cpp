@@ -1,6 +1,8 @@
+#include <assert.h>
 #include "coroutine.h"
 #include "co_define.h"
 #include "co_schedule.h"
+#include "common/helper.h"
 
 Coroutine::Coroutine(int id) {
 	_id = id;
@@ -8,6 +10,7 @@ Coroutine::Coroutine(int id) {
 }
 
 Coroutine::~Coroutine() {
+	printf("#################### [%ld]~Coroutine, ptr:%p\n", now_us(), this);
 	g_ctx_handle->release_context(_ctx);
 }
 
@@ -28,8 +31,10 @@ co_context_handle Coroutine::get_context() {
 } 
 
 void Coroutine::run() {
+	assert(_func);
 	_func();
 	_status = CO_STATUS_FINISH;
+	_func = nullptr;
 }
 
 void Coroutine::co_run(void* argv) {
@@ -43,3 +48,13 @@ void Coroutine::co_run(void* argv) {
 		Singleton<CoSchedule>::get_instance()->release();
 	}
 }
+
+//void Coroutine::co_run(void* argv) {
+//	auto index = reinterpret_cast<long>(argv);
+//	auto co = Singleton<CoSchedule>::get_instance()->get_coroutine(index);
+//	if (!co) {
+//		throw CoException(CO_ERROR_INIT_ENV_FAIL);
+//	}
+//	co->_func();
+//	co->_status = CO_STATUS_FINISH;
+//}

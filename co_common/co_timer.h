@@ -54,11 +54,7 @@ public:
             _cv.notify_all();
         }
         for (auto& worker : _workers) {
-            if (wait) {
-                worker.join();
-            } else {
-                worker.detach();
-            }
+            wait ? worker.join() : worker.detach();
         }
     }
 
@@ -85,12 +81,14 @@ public:
             _cv.notify_one();
         }
         printf(
-            "[%s]tid:%d, cid:%d set timer sleep, waitup_time:%s, notify:%s\n", 
+            "[%s]tid:%d, cid:%d set timer sleep, waitup_time:%s, notify:%s, ptr:%p, use_count:%ld\n", 
             date_ms().c_str(),
             gettid(),
             co->_id,
             date_ms(trigger).c_str(),
-            notify ? "true" : "false"
+            notify ? "true" : "false",
+            ptr.get(),
+            ptr.use_count()
         );
         return CoTimerId(ptr);
     }
@@ -159,13 +157,6 @@ private:
         }    
         printf("+++++++++++++++ timer thread is terminate\n");
     }
-
-//    long get_latest_expire() {
-//        if (!_list.size()) {
-//            return 0;
-//        }
-//        return _list.begin()->first;
-//    }
 
 private:
     co_timer_list_t     _list;

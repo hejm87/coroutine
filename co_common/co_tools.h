@@ -46,7 +46,8 @@ inline int get_coroutine_count() {
     if (p) {
         count = atoi(p);
     }
-    return count;
+   // return count;
+    return 5;
 }
 
 #endif

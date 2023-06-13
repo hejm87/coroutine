@@ -55,12 +55,12 @@ public:
 	static void co_run(void* argv);
 
 public:
-	int		_id;				// 协程id
-    int		_status;			// 协程状�?
-	int		_suspend_status;	// 协程暂停状�?
-	bool	_priority;			// 协程执�?�优先级
+	int		_id;
+    int		_status;
+	int		_suspend_status;
+	bool	_priority;
 
-	std::function<void()>	_func;	// 协程执�?�函�?
+	std::function<void()>	_func;
 
 	CoParam	_param;
 

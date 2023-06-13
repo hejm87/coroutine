@@ -29,6 +29,8 @@ public:
 template <typename T>
 class CoAwaiter
 {
+friend class CoSchedule;
+friend class CoApi;
 public:
     void wait() {
         if (_wait_finish) {
@@ -100,6 +102,7 @@ template <>
 class CoAwaiter<void>
 {
 friend class CoSchedule;
+friend class CoApi;
 public:
     void await() {
         if (_wait_finish) {

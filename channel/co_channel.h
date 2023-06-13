@@ -186,6 +186,7 @@ public:
             obj = co->_param.value.AnyCast<T>();
             co->_param.value.Reset();
         }
+        return true;
     }
 
 private:

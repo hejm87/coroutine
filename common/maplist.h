@@ -1,9 +1,21 @@
 #ifndef __MAP_LIST_H__
 #define __MAP_LIST_H__
 
+#include <assert.h>
+#include <sys/time.h>
+
 #include <map>
 #include <list>
 #include <algorithm>
+
+#include "helper.h"
+
+#define now_usss() \
+({ \
+    struct timeval tv; \
+    gettimeofday(&tv, NULL); \
+	(tv.tv_sec * 1000000 + tv.tv_usec); \
+})
 
 template <typename T>
 class MapList
@@ -14,27 +26,35 @@ public:
 	}
 
 	~MapList() {
-        printf("############## release MapList, pt:%p\n", this);
+        printf("############## [%ld]release MapList, pt:%p\n", now_usss(), this);
     }
 
     MapList(MapList&& obj) {
+        printf("############## goto MapList(MapList&&)\n");
+        exit(0);
         std::swap(_list, obj._list);
         std::swap(_map_list_iter, obj._map_list_iter);
     }
 
     MapList& operator=(MapList&& obj) {
+        printf("############## goto MapList operation=\n");
+        exit(0);
         std::swap(_list, obj._list);
         std::swap(_map_list_iter, obj._map_list_iter);
     }
 
     void push_front(const T& obj) {
-        _list.push_front(obj);
-        _map_list_iter[obj] = _list.begin();
+        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_front, beg, ptr:%p ...\n", now_usss(), gettid(), this);
+        _map_list_iter[obj] = _list.insert(_list.begin(), obj);
+        assert(_map_list_iter.size() == _list.size());
+        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_front, end, ptr:%p ...\n", now_usss(), gettid(), this);
     }
 
     void push_back(const T& obj) {
-        _list.push_back(obj);
-        _map_list_iter[obj] = --_list.end();
+        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_back, beg, ptr:%p ...\n", now_usss(), gettid(), this);
+        _map_list_iter[obj] = _list.insert(_list.end(), obj);
+        assert(_map_list_iter.size() == _list.size());
+        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_back, end, ptr:%p ...\n", now_usss(), gettid(), this);
     }
 
     void pop_front() {
@@ -42,8 +62,8 @@ public:
             return ;
         }
         auto obj = _list.front();
-        _list.pop_front();
         _map_list_iter.erase(obj);
+        _list.pop_front();
     }
 
     void pop_back() {
@@ -51,8 +71,8 @@ public:
             return ;
         }
         auto obj = _list.back();
-        _list.pop_back();
         _map_list_iter.erase(obj);
+        _list.pop_back();
     }
 
     bool front(T& obj) {
@@ -71,7 +91,7 @@ public:
         return true;
     }
 
-    bool remove(T& obj) {
+    bool remove(const T& obj) {
         auto iter = _map_list_iter.find(obj);
         if (iter == _map_list_iter.end()) {
             return false;
@@ -91,8 +111,7 @@ public:
 	}
 
     bool is_exist(const T& obj) {
-        auto iter = _map_list_iter.find(obj);
-        return iter != _map_list_iter.end() ? true : false;
+        return _map_list_iter.find(obj) != _map_list_iter.end() ? true : false;
     }
 
 	int size() {

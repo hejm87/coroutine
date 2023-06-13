@@ -17,7 +17,8 @@ class CoTimerId;
 class CoExecutor;
 class Coroutine;
 
-extern thread_local std::shared_ptr<CoExecutor> g_co_executor;
+//extern thread_local std::shared_ptr<CoExecutor> g_co_executor;
+extern thread_local CoExecutor* g_co_executor;
 
 class CoSchedule
 {
@@ -30,15 +31,14 @@ public:
 
     void sleep(int sleep_ms);
 
-    void yield(std::function<void()> do_after = nullptr);
+    void yield(std::function<void()> doing = nullptr);
 
-    void suspend();
+    void suspend(std::function<void()> doing = nullptr);
 
     void release();
 
     void resume(std::shared_ptr<Coroutine> co);
 
-    // ��ʱ�����Ⱥ�ʹ��Э��ִ�ж�ʱ���߼�
     CoTimerId set_timer(int delay_ms, const std::function<void()>& func);
 
     bool stop_timer(const CoTimerId& timer_id);
@@ -69,9 +69,9 @@ public:
         return ptr;
     }
 
-    void free(std::shared_ptr<Coroutine> co) {
-        _lst_free.push_back(co);
-    }
+   // void free(std::shared_ptr<Coroutine> co) {
+   //     _lst_free.push_back(co);
+   // }
 
     bool is_set_end() {
         return _is_set_end;
@@ -84,6 +84,7 @@ private:
             return false;
         }
         _lst_free.pop_front();
+        return true;
     }
 
 private:
@@ -100,7 +101,9 @@ private:
     int     _executor_count;
 
     std::atomic<bool>    _is_set_end;
-    std::vector<std::shared_ptr<CoExecutor>>  _executors;
+   // std::vector<std::shared_ptr<CoExecutor>>  _executors;
+
+    std::vector<CoExecutor*>    _executors;
     std::vector<std::shared_ptr<Coroutine>>   _coroutines;
 
     std::mutex  _mutex;

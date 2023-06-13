@@ -14,7 +14,7 @@
 
 class Coroutine;
 
-class CoExecutor : public std::enable_shared_from_this<CoExecutor>
+class CoExecutor //: public std::enable_shared_from_this<CoExecutor>
 {
 public:
     CoExecutor(); 
@@ -41,7 +41,7 @@ private:
     bool get_ready_co(std::shared_ptr<Coroutine>& co);
 
 private:
-    CoList      _lst_ready;     // 就绪队列
+    CoList      _lst_ready;
 
     std::shared_ptr<Coroutine>   _running_co;
 

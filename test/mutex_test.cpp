@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <atomic>
 #include "../co_api.h"
 #include "../mutex/co_mutex.h"
 #include "test_define.h"
@@ -10,12 +11,13 @@ using namespace std;
 int main()
 {
 	printf("pid:%d\n", getpid());
+    atomic<int> end_count(0);
+    int value = 100;
+    CoMutex mutex;
     Singleton<CoSchedule>::get_instance()->set_logger(test_logger);
     try {
-        int value = 100;
-        CoMutex mutex;
         for (int i = 0; i < 2; i++) {
-            CoApi::create([&mutex, &value] {
+            CoApi::create([&mutex, &value, &end_count] {
                 while (1) {
                     printf(
                         "[%s]tid:%d, cid:%d prepare lock\n", 
@@ -25,6 +27,13 @@ int main()
                     );
                     mutex.lock();
                     if (value <= 0) {
+                        printf(
+                            "[%s]tid:%d, cid:%d break\n",
+                            date_ms().c_str(),
+                            gettid(),
+                            CoApi::getcid()
+                        );
+                        mutex.unlock();
                         break ;
                     }
                     printf(
@@ -49,10 +58,13 @@ int main()
                         CoApi::getcid()
                     );
                 }
+                end_count++;
             });
         }
-        while (value != 0) {
-            sleep(1);
+        while (1) {
+            if (value == 0 && end_count == 2) {
+                break ;
+            }
         }
         printf("########### test finish\n");
     } catch (exception& ex) {

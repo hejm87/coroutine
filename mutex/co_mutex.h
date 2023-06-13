@@ -12,6 +12,7 @@ class CoMutex
 public:
     CoMutex();
     CoMutex(CoMutex&& obj);
+    ~CoMutex();
 
     CoMutex& operator=(CoMutex&& obj);
 

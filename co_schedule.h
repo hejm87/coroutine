@@ -6,6 +6,7 @@
 #include <functional>
 #include <exception>
 #include <vector>
+#include <map>
 #include <condition_variable>
 #include "co_define.h"
 #include "co_helper.h"
@@ -51,11 +52,36 @@ public:
         _logger = logger;
     }
 
+//    template <class... Args>
+//    void logger(int level, const char* msg, const char* file, int line, Args... args)
+//    {
+//        printf("################ goto logger\n");
+//        exit(0);
+//        char buf[8192];
+//        snprintf(buf, sizeof(buf), msg, file, line, args...);
+//        if (_logger) {
+//            _logger(level, buf);
+//        }
+//    }
+
     template <class... Args>
     void logger(int level, const char* msg, const char* file, int line, Args... args)
     {
+        static std::map<int, const char*> _level_str = {
+            {CO_LEVEL_DEBUG, "debug"},
+            {CO_LEVEL_INFO,  "info"},
+            {CO_LEVEL_WARN,  "warn"},
+            {CO_LEVEL_ERROR, "error"},
+            {CO_LEVEL_FATAL, "fatal"},
+        };
+
+        auto iter = _level_str.find(level);
+        if (iter == _level_str.end()) {
+            return ;
+        }
+
         char buf[8192];
-        snprintf(buf, sizeof(buf), msg, file, line, args...);
+        snprintf(buf, sizeof(buf), msg, file, line, iter->second, args...);
         if (_logger) {
             _logger(level, buf);
         }
@@ -110,7 +136,6 @@ private:
     std::atomic<bool>    _is_set_end;
     std::vector<std::shared_ptr<CoExecutor>>  _executors;
 
- //   std::vector<CoExecutor*>    _executors;
     std::vector<std::shared_ptr<Coroutine>>   _coroutines;
 
     std::mutex  _mutex;

@@ -53,10 +53,7 @@ inline std::string date_ms(long time_ms = 0) {
 
 #define CO_LOG(level, fmt, ...) \
 { \
-    printf("====> %s\n", date_ms().c_str()); \
-    printf(fmt, ##__VA_ARGS__); \
-    printf("\n"); \
+    Singleton<CoSchedule>::get_instance()->logger(level, fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
 }
 
-//    Singleton<CoSchedule>::get_instance()->logger(level, "[FILE:%s,LINE:%d]" fmt, __FILE__, __LINE__, ##__VA_ARGS__);
 #endif

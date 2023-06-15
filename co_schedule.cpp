@@ -18,13 +18,13 @@ CoSchedule::CoSchedule()
     _stack_size = get_stack_size();
     _executor_count = get_executor_count();
 
-    CO_LOG_DEBUG("executor_count:%d", _executor_count);
-    CO_LOG_DEBUG("timer_thread_count:%d", get_timer_thread_count());
-    CO_LOG_DEBUG("coroutine_count:%d", get_coroutine_count());
-
-    printf("init|_lst_free addr:%p\n", &_lst_free);
-    printf("init|_lst_ready addr:%p\n", &_lst_ready);
-    printf("init|_lst_suspend addr:%p\n", &_lst_suspend);
+//    CO_LOG_DEBUG("executor_count:%d", _executor_count);
+//    CO_LOG_DEBUG("timer_thread_count:%d", get_timer_thread_count());
+//    CO_LOG_DEBUG("coroutine_count:%d", get_coroutine_count());
+//
+//    printf("init|_lst_free addr:%p\n", &_lst_free);
+//    printf("init|_lst_ready addr:%p\n", &_lst_ready);
+//    printf("init|_lst_suspend addr:%p\n", &_lst_suspend);
 
     for (int i = 0; i < _executor_count; i++) {
    // for (int i = 0; i < 1; i++) {
@@ -59,6 +59,8 @@ CoSchedule::~CoSchedule()
 
 void CoSchedule::create(bool priority, const function<void()>& func)
 {
+    printf("############ CoSchedule::create\n");
+    CO_LOG_INFO("create coroutine, priority:%s", priority ? "true" : "false");
     lock_guard<mutex> lock(_mutex);
     shared_ptr<Coroutine> co;
     if (!_lst_free.front(co)) {

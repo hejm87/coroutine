@@ -16,22 +16,22 @@ make_test:
 	cd test && rm -f mutex_test && g++ -std=c++11 -g -o mutex_test mutex_test.cpp ../obj/co_mutex.o ../lib/libco.a -lpthread
 
 obj/co_timer.o: co_common/co_timer.cpp
-	g++ -std=c++11 -Wall -g -o $@ -c $<
+	g++ -std=c++11 -g -o $@ -c $<
 
 obj/co_ucontext_handle.o: context/co_ucontext_handle.cpp
-	g++ -std=c++11 -Wall -g -o $@ -c $<
+	g++ -std=c++11 -g -o $@ -c $<
 
 obj/co_mutex.o: mutex/co_mutex.cpp
-	g++ -std=c++11 -Wall -g -o $@ -c $<
+	g++ -std=c++11 -g -o $@ -c $<
 
 obj/co_executor.o: co_executor.cpp
-	g++ -std=c++11 -Wall -g -o $@ -c $<
+	g++ -std=c++11 -g -o $@ -c $<
 
 obj/co_schedule.o: co_schedule.cpp
-	g++ -std=c++11 -Wall -g -o $@ -c $<
+	g++ -std=c++11 -g -o $@ -c $<
 
 obj/coroutine.o: coroutine.cpp
-	g++ -std=c++11 -Wall -g -o $@ -c $<
+	g++ -std=c++11 -g -o $@ -c $<
 
 clean:
 	rm -f ${LIB_DIR}/libco.a

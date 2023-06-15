@@ -26,8 +26,8 @@ CoSchedule::CoSchedule()
 //    printf("init|_lst_ready addr:%p\n", &_lst_ready);
 //    printf("init|_lst_suspend addr:%p\n", &_lst_suspend);
 
-    for (int i = 0; i < _executor_count; i++) {
-   // for (int i = 0; i < 1; i++) {
+  //  for (int i = 0; i < _executor_count; i++) {
+    for (int i = 0; i < 1; i++) {
         auto ptr = shared_ptr<CoExecutor>(new CoExecutor);
        // auto ptr = new CoExecutor;
         _executors.push_back(ptr);
@@ -49,10 +49,10 @@ CoSchedule::CoSchedule()
 
 CoSchedule::~CoSchedule()
 {
+    printf("########## ~CoSchedule\n");
     _is_set_end = true;
     for (auto item : _executors) {
         item->stop();
-       // delete item;
     }
     delete _timer;
 }
@@ -124,7 +124,7 @@ void CoSchedule::sleep(int sleep_ms)
 //        _lst_sleep.insert(make_pair(now_ms() + sleep_ms, co));
 //    }
 //
-//    // TODO Ã»µ÷ÓÃswap_contextº¯Êý¾Í±»ÇÐ×ßÁË£¬Ë¯ÃßµÄÐ­³ÌÓÐµ÷ÆðÁËÔÙ×ßµ½ÕâÀïÔõÃ´ÆÆ£¿£¡£¿
+//    // TODO Ã»ï¿½ï¿½ï¿½ï¿½swap_contextï¿½ï¿½ï¿½ï¿½ï¿½Í±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë£ï¿½Ë¯ï¿½ßµï¿½Ð­ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã´ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½
 //    g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 //}
 
@@ -139,7 +139,7 @@ void CoSchedule::yield(function<void()> doing)
             doing();
         }
     }
-   // Ö®Ç°´úÂëÐ´ÕâÀïµÄ
+   // Ö®Ç°ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½ï¿½
    // if (doing) {
    //     doing();
    // }
@@ -151,15 +151,15 @@ void CoSchedule::suspend(function<bool()> do_and_check)
     auto co = g_co_executor->get_running_co();
     co->_status = CO_STATUS_SUSPEND;
     {
-        printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, try lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
+       // printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, try lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
         lock_guard<mutex> lock(_mutex);
         if (!do_and_check()) {
-            printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, unlock1, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
+           // printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, unlock1, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
             return ;
         }
-        printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
+       // printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
         _lst_suspend.push_back(co);
-        printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, unlock2, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
+       // printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, unlock2, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
     }
     g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
@@ -167,37 +167,37 @@ void CoSchedule::suspend(function<bool()> do_and_check)
 void CoSchedule::resume(shared_ptr<Coroutine> co)
 {
     auto cur_co = g_co_executor->get_running_co();
-    printf("[%s][co_schedule, resume]tid:%d, cid:%d, try lock\n", date_ms().c_str(), gettid(), co->_id);
+   // printf("[%s][co_schedule, resume]tid:%d, cid:%d, try lock\n", date_ms().c_str(), gettid(), co->_id);
     lock_guard<mutex> lock(_mutex);     
-    printf("[%s][co_schedule, resume]tid:%d, cid:%d, lock, resume_cid:%d\n", date_ms().c_str(), gettid(), co->_id, co->_id);
+   // printf("[%s][co_schedule, resume]tid:%d, cid:%d, lock, resume_cid:%d\n", date_ms().c_str(), gettid(), co->_id, co->_id);
     assert(_lst_suspend.is_exist(co));
     co->_status = CO_STATUS_READY;
     _lst_suspend.remove(co);
     _lst_ready.push_front(co);
-    printf("[%s][co_schedule, resume]tid:%d, cid:%d, unlock\n", date_ms().c_str(), gettid(), co->_id);
+   // printf("[%s][co_schedule, resume]tid:%d, cid:%d, unlock\n", date_ms().c_str(), gettid(), co->_id);
 }
 
 void CoSchedule::resume(std::function<std::shared_ptr<Coroutine>()> do_and_resume)
 {
     auto cur_co = g_co_executor->get_running_co();
-    printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, try lock\n", date_ms().c_str(), gettid(), cur_co->_id);
+   // printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, try lock\n", date_ms().c_str(), gettid(), cur_co->_id);
     lock_guard<mutex> lock(_mutex);
-    printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, lock\n", date_ms().c_str(), gettid(), cur_co->_id);
+   // printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, lock\n", date_ms().c_str(), gettid(), cur_co->_id);
     auto resume_co = do_and_resume();
     if (resume_co) {
-        printf(
-            "[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, resume_cid:%d\n", 
-            date_ms().c_str(), 
-            gettid(), 
-            cur_co->_id, 
-            resume_co->_id
-        );
+       // printf(
+       //     "[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, resume_cid:%d\n", 
+       //     date_ms().c_str(), 
+       //     gettid(), 
+       //     cur_co->_id, 
+       //     resume_co->_id
+       // );
         assert(_lst_suspend.is_exist(resume_co));
         resume_co->_status = CO_STATUS_READY;
         _lst_suspend.remove(resume_co);
         _lst_ready.push_front(resume_co);
     }
-    printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, unlock\n", date_ms().c_str(), gettid(), cur_co->_id);
+   // printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, unlock\n", date_ms().c_str(), gettid(), cur_co->_id);
 }
 
 void CoSchedule::release()

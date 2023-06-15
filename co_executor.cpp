@@ -16,6 +16,7 @@ CoExecutor::CoExecutor()
 CoExecutor::~CoExecutor()
 {
     printf("############## goto ~CoExecutor, tid:%d\n", gettid());
+    // TODO 下面代码增加terminate called without an active exception风险
     if (_is_running) {
         stop(true);
     }

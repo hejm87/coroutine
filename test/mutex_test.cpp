@@ -11,10 +11,6 @@ using namespace std;
 int main()
 {
 	printf("pid:%d\n", getpid());
-
-	int* p = NULL;
-	*p = 100;	
-
     int value = 100;
     atomic<int> end_count(0);
     atomic<int> total_count(0);

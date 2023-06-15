@@ -34,11 +34,13 @@ public:
 
     void yield(std::function<void()> doing = nullptr);
 
-    void suspend(std::function<void()> doing = nullptr);
-
-    void release();
+    void suspend(std::function<bool()> do_and_check);
 
     void resume(std::shared_ptr<Coroutine> co);
+
+    void resume(std::function<std::shared_ptr<Coroutine>()> do_and_resume);
+
+    void release();
 
     CoTimerId set_timer(int delay_ms, const std::function<void()>& func);
 
@@ -51,18 +53,6 @@ public:
     void set_logger(std::function<void(int, const char*)> logger) {
         _logger = logger;
     }
-
-//    template <class... Args>
-//    void logger(int level, const char* msg, const char* file, int line, Args... args)
-//    {
-//        printf("################ goto logger\n");
-//        exit(0);
-//        char buf[8192];
-//        snprintf(buf, sizeof(buf), msg, file, line, args...);
-//        if (_logger) {
-//            _logger(level, buf);
-//        }
-//    }
 
     template <class... Args>
     void logger(int level, const char* msg, const char* file, int line, Args... args)

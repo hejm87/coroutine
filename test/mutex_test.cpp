@@ -11,6 +11,10 @@ using namespace std;
 int main()
 {
 	printf("pid:%d\n", getpid());
+
+	int* p = NULL;
+	*p = 100;	
+
     int value = 100;
     atomic<int> end_count(0);
     atomic<int> total_count(0);
@@ -20,12 +24,12 @@ int main()
         for (int i = 0; i < 2; i++) {
             CoApi::create([&mutex, &value, &end_count, &total_count] {
                 while (1) {
-                    printf(
-                        "[%s]tid:%d, cid:%d prepare lock\n", 
-                        date_ms().c_str(), 
-                        gettid(), 
-                        CoApi::getcid()
-                    );
+                   // printf(
+                   //     "[%s]tid:%d, cid:%d prepare lock\n", 
+                   //     date_ms().c_str(), 
+                   //     gettid(), 
+                   //     CoApi::getcid()
+                   // );
                     mutex.lock();
                     if (value <= 0) {
                         printf(
@@ -46,19 +50,19 @@ int main()
                     );
                     total_count++;
                     mutex.unlock();
-                    printf(
-                        "[%s]tid:%d, cid:%d unlock\n", 
-                        date_ms().c_str(), 
-                        gettid(), 
-                        CoApi::getcid()
-                    );
-                    CoApi::sleep(2);
-                    printf(
-                        "[%s]tid:%d, cid:%d after sleep\n", 
-                        date_ms().c_str(), 
-                        gettid(), 
-                        CoApi::getcid()
-                    );
+                   // printf(
+                   //     "[%s]tid:%d, cid:%d unlock\n", 
+                   //     date_ms().c_str(), 
+                   //     gettid(), 
+                   //     CoApi::getcid()
+                   // );
+                   // CoApi::sleep(2);
+                   // printf(
+                   //     "[%s]tid:%d, cid:%d after sleep\n", 
+                   //     date_ms().c_str(), 
+                   //     gettid(), 
+                   //     CoApi::getcid()
+                   // );
                 }
                 end_count++;
             });

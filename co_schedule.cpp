@@ -7,14 +7,13 @@
 
 using namespace std;
 
-//thread_local shared_ptr<CoExecutor> g_co_executor;
-thread_local CoExecutor* g_co_executor;
+thread_local shared_ptr<CoExecutor> g_co_executor;
+//thread_local CoExecutor* g_co_executor;
 
 CoSchedule::CoSchedule()
 {
     _log_level = CO_LEVEL_INFO;
-   // _timer = new CoTimer(get_timer_thread_count());
-    _timer = new CoTimer(1);
+    _timer = new CoTimer(get_timer_thread_count());
 
     _stack_size = get_stack_size();
     _executor_count = get_executor_count();
@@ -29,14 +28,14 @@ CoSchedule::CoSchedule()
 
     for (int i = 0; i < _executor_count; i++) {
    // for (int i = 0; i < 1; i++) {
-       // auto ptr = shared_ptr<CoExecutor>(new CoExecutor);
-        auto ptr = new CoExecutor;
+        auto ptr = shared_ptr<CoExecutor>(new CoExecutor);
+       // auto ptr = new CoExecutor;
         _executors.push_back(ptr);
         ptr->run();
     }
 
-   // for (int i = 0; i < get_coroutine_count(); i++) {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < get_coroutine_count(); i++) {
+   // for (int i = 0; i < 10; i++) {
         auto co = new Coroutine(i);
         printf("co[%d] : %p\n", i, co);
         auto ptr = shared_ptr<Coroutine>(co);
@@ -53,7 +52,7 @@ CoSchedule::~CoSchedule()
     _is_set_end = true;
     for (auto item : _executors) {
         item->stop();
-        delete item;
+       // delete item;
     }
     delete _timer;
 }

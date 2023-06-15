@@ -23,8 +23,8 @@ CoExecutor::~CoExecutor()
 
 bool CoExecutor::run()
 {
-   // auto ptr = shared_from_this();
-    auto ptr = this;
+    auto ptr = shared_from_this();
+   // auto ptr = this;
     _thread = move(thread([ptr]() {
         ptr->_is_running = true;
         g_co_executor = ptr;
@@ -71,16 +71,6 @@ void CoExecutor::sleep(int sleep_ms)
     _lst_sleep.insert(make_pair(now_ms() + sleep_ms, co));
     g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
 }
-
-//void CoExecutor::sleep(int sleep_ms)
-//{
-//    auto trigger = now_ms();
-//    if (sleep_ms > 0) {
-//        trigger += sleep_ms;
-//    }
-//    lock_guard<mutex> lock(_mutex);
-//    _lst_sleep.insert(make_pair(trigger, _running_co));
-//}
 
 /*
 void CoExecutor::yield(function<void()> do_after)

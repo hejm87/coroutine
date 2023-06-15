@@ -11,13 +11,14 @@ using namespace std;
 int main()
 {
 	printf("pid:%d\n", getpid());
-    atomic<int> end_count(0);
     int value = 100;
+    atomic<int> end_count(0);
+    atomic<int> total_count(0);
     CoMutex mutex;
     Singleton<CoSchedule>::get_instance()->set_logger(test_logger);
     try {
         for (int i = 0; i < 2; i++) {
-            CoApi::create([&mutex, &value, &end_count] {
+            CoApi::create([&mutex, &value, &end_count, &total_count] {
                 while (1) {
                     printf(
                         "[%s]tid:%d, cid:%d prepare lock\n", 
@@ -43,6 +44,7 @@ int main()
                         CoApi::getcid(),
                         --value
                     );
+                    total_count++;
                     mutex.unlock();
                     printf(
                         "[%s]tid:%d, cid:%d unlock\n", 
@@ -66,6 +68,7 @@ int main()
                 break ;
             }
         }
+        assert(total_count == 100);
         printf("########### test finish\n");
     } catch (exception& ex) {
         printf("exception:%s\n", ex.what());

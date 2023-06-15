@@ -17,8 +17,8 @@ class CoTimerId;
 class CoExecutor;
 class Coroutine;
 
-//extern thread_local std::shared_ptr<CoExecutor> g_co_executor;
-extern thread_local CoExecutor* g_co_executor;
+extern thread_local std::shared_ptr<CoExecutor> g_co_executor;
+//extern thread_local CoExecutor* g_co_executor;
 
 class CoSchedule
 {
@@ -108,9 +108,9 @@ private:
     int     _executor_count;
 
     std::atomic<bool>    _is_set_end;
-   // std::vector<std::shared_ptr<CoExecutor>>  _executors;
+    std::vector<std::shared_ptr<CoExecutor>>  _executors;
 
-    std::vector<CoExecutor*>    _executors;
+ //   std::vector<CoExecutor*>    _executors;
     std::vector<std::shared_ptr<Coroutine>>   _coroutines;
 
     std::mutex  _mutex;

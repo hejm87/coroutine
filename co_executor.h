@@ -14,7 +14,7 @@
 
 class Coroutine;
 
-class CoExecutor //: public std::enable_shared_from_this<CoExecutor>
+class CoExecutor : public std::enable_shared_from_this<CoExecutor>
 {
 public:
     CoExecutor(); 

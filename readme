@@ -14,4 +14,5 @@
 1. Backtrace stopped: frame did not save the PC问题 --> 可能原因为协程已经运行了，但是另外一个线程又要切换到这个协程导致的，目前解法为sleep队列放到co_executor解决竞争问题
 
 遗留问题：
-2. CoMutex的构造函数需要注意
+1. CoMutex的构造函数需要注意
+2. 内部日志函数有问题，打印不出来

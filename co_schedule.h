@@ -97,6 +97,8 @@ private:
     CoList  _lst_ready;
     CoList  _lst_suspend;
 
+    std::multimap<long, std::shared_ptr<Coroutine>>  _lst_sleep;
+
     CoTimer*    _timer;
 
     int     _stack_size;

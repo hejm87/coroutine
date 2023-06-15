@@ -26,35 +26,27 @@ public:
 	}
 
 	~MapList() {
-        printf("############## [%ld]release MapList, pt:%p\n", now_usss(), this);
+        ;
     }
 
     MapList(MapList&& obj) {
-        printf("############## goto MapList(MapList&&)\n");
-        exit(0);
         std::swap(_list, obj._list);
         std::swap(_map_list_iter, obj._map_list_iter);
     }
 
     MapList& operator=(MapList&& obj) {
-        printf("############## goto MapList operation=\n");
-        exit(0);
         std::swap(_list, obj._list);
         std::swap(_map_list_iter, obj._map_list_iter);
     }
 
     void push_front(const T& obj) {
-        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_front, beg, ptr:%p ...\n", now_usss(), gettid(), this);
         _map_list_iter[obj] = _list.insert(_list.begin(), obj);
         assert(_map_list_iter.size() == _list.size());
-        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_front, end, ptr:%p ...\n", now_usss(), gettid(), this);
     }
 
     void push_back(const T& obj) {
-        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_back, beg, ptr:%p ...\n", now_usss(), gettid(), this);
         _map_list_iter[obj] = _list.insert(_list.end(), obj);
         assert(_map_list_iter.size() == _list.size());
-        printf("[%ld] !!!!!!!!!!!!!!!! tid:%d, colist.push_back, end, ptr:%p ...\n", now_usss(), gettid(), this);
     }
 
     void pop_front() {

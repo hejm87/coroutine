@@ -10,7 +10,6 @@ Coroutine::Coroutine(int id) {
 }
 
 Coroutine::~Coroutine() {
-	printf("#################### [%ld]~Coroutine, ptr:%p\n", now_us(), this);
 	g_ctx_handle->release_context(_ctx);
 }
 

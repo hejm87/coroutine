@@ -25,6 +25,7 @@ public:
     bool wait_util_stop();
 
     void sleep(int sleep_ms);
+
 //    void yield(std::function<void()> do_after = nullptr);
 //    void resume(std::shared_ptr<Coroutine> co);
 
@@ -33,14 +34,16 @@ public:
     void set_end();
 
 private:
-    bool on_awake();
+   // bool on_awake();
     bool on_execute();
 
     bool get_ready_co(std::shared_ptr<Coroutine>& co);
 
 private:
     CoList      _lst_ready;
-    std::multimap<long, std::shared_ptr<Coroutine>>  _lst_sleep;
+    std::multimap<long, std::shared_ptr<Coroutine>> _lst_sleep;
+
+   // std::multimap<long, std::shared_ptr<Coroutine>>  _lst_sleep;
 
     std::shared_ptr<Coroutine>   _running_co;
 

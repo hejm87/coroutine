@@ -7,10 +7,11 @@
 2. 修复CoSchedule析构时MapList析构时list析构出现free无效指针问题 --> 把Coroutine类的enable_share_from_this继承去掉即可
 
 [2023-06-13]
-3. 修复跑mutex_test过程中会出现coredump问题 --> 由于没有处理好多线程问题导致的
-4. 修复resume发现coroutine不在suspend队列中 --> 在sleep时还没有将coroutine放进suspend（可能是线程切换的原因）就被调用resume去唤醒
+1. 修复跑mutex_test过程中会出现coredump问题 --> 由于没有处理好多线程问题导致的
+2. 修复resume发现coroutine不在suspend队列中 --> 在sleep时还没有将coroutine放进suspend（可能是线程切换的原因）就被调用resume去唤醒
 
+[2023-06-15]
+1. Backtrace stopped: frame did not save the PC问题 --> 可能原因为协程已经运行了，但是另外一个线程又要切换到这个协程导致的，目前解法为sleep队列放到co_executor解决竞争问题
 
 遗留问题：
-1. Backtrace stopped: frame did not save the PC问题 --> CoSchedule::sleep sleep_ms为-1时产生，可能是时序混乱导致流程错了
 2. CoMutex的构造函数需要注意

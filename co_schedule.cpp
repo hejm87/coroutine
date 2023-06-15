@@ -66,7 +66,6 @@ void CoSchedule::create(bool priority, const function<void()>& func)
         throw CoException(CO_ERROR_NO_RESOURCE);
     }
     _lst_free.pop_front();
-
     co->_func = func;
     co->_priority = priority;
     if (priority) {
@@ -84,37 +83,56 @@ void CoSchedule::sleep(int sleep_ms)
     if (!g_co_executor) {
         throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
     }
-    auto co = g_co_executor->get_running_co();
-    co->_status = CO_STATUS_SUSPEND;
-    co->_suspend_status = CO_SUSPEND_SLEEP;
-
-    {
-        std::lock_guard<std::mutex> lock(_mutex);
-        _lst_suspend.push_back(co);
-        _timer->set(sleep_ms, [this, co] {
-            printf("[%s][co_schedule, sleep]tid:%d, cid:%d sleep finish\n", date_ms().c_str(), gettid(), co->_id);
-            {
-                std::lock_guard<std::mutex> lock(_mutex);
-                printf("[%s][co_schedule, sleep]cid:%d sleep.timer co_schedule.lock\n", date_ms().c_str(), co->_id);
-                assert(_lst_suspend.is_exist(co));
-                _lst_suspend.remove(co);
-                printf("[%s][co_schedule, sleep]cid:%d sleep.timer _lst_ready push_front, ptr:%p\n", date_ms().c_str(), co->_id, co.get());
-                _lst_ready.push_front(co);
-                printf("[%s][co_schedule, sleep]cid:%d sleep.timer co_schedule.unlock\n", date_ms().c_str(), co->_id);
-            }
-            printf("[%s][co_schedule, sleep]tid:%d, cid:%d co_schedule.unlock\n", date_ms().c_str(), gettid(), co->_id);
-        });
-    }
-    // TODO 没调用swap_context函数就被切走了，睡眠的协程有调起了再走到这里怎么破？！？
-    g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
+    g_co_executor->sleep(sleep_ms);
 }
+
+//void CoSchedule::sleep(int sleep_ms)
+//{
+//    printf("############ sleep %dms\n", sleep_ms);
+//    if (sleep_ms <= 0) {
+//        return ;
+//    }
+//    if (!g_co_executor) {
+//        throw CoException(CO_ERROR_NOT_IN_CO_THREAD);
+//    }
+//    auto co = g_co_executor->get_running_co();
+//    co->_status = CO_STATUS_SUSPEND;
+//    co->_suspend_status = CO_SUSPEND_SLEEP;
+//
+//   // {
+//   //     std::lock_guard<std::mutex> lock(_mutex);
+//   //     _lst_suspend.push_back(co);
+//   //     _timer->set(sleep_ms, [this, co] {
+//   //         printf("[%s][co_schedule, sleep]tid:%d, cid:%d sleep finish\n", date_ms().c_str(), gettid(), co->_id);
+//   //         {
+//   //             std::lock_guard<std::mutex> lock(_mutex);
+//   //             printf("[%s][co_schedule, sleep]cid:%d sleep.timer co_schedule.lock\n", date_ms().c_str(), co->_id);
+//   //             assert(_lst_suspend.is_exist(co));
+//   //             _lst_suspend.remove(co);
+//   //             printf("[%s][co_schedule, sleep]cid:%d sleep.timer _lst_ready push_front, ptr:%p\n", date_ms().c_str(), co->_id, co.get());
+//   //             _lst_ready.push_front(co);
+//   //             printf("[%s][co_schedule, sleep]cid:%d sleep.timer co_schedule.unlock\n", date_ms().c_str(), co->_id);
+//   //         }
+//   //         printf("[%s][co_schedule, sleep]tid:%d, cid:%d co_schedule.unlock\n", date_ms().c_str(), gettid(), co->_id);
+//   //     });
+//   // }
+//
+//    {
+//        lock_guard<mutex> lock(_mutex);
+//       // _lst_suspend.push_back(co);
+//        _lst_sleep.insert(make_pair(now_ms() + sleep_ms, co));
+//    }
+//
+//    // TODO 没调用swap_context函数就被切走了，睡眠的协程有调起了再走到这里怎么破？！？
+//    g_ctx_handle->swap_context(co->get_context(), g_ctx_main);
+//}
 
 void CoSchedule::yield(function<void()> doing)
 {
     auto co = g_co_executor->get_running_co();
     co->_status = CO_STATUS_READY;
     {
-        std::lock_guard<std::mutex> lock(_mutex);
+        lock_guard<mutex> lock(_mutex);
         _lst_ready.push_back(co);
         if (doing) {
             doing();
@@ -133,7 +151,7 @@ void CoSchedule::suspend(function<void()> doing)
     co->_status = CO_STATUS_SUSPEND;
     {
         printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, try lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
-        std::lock_guard<std::mutex> lock(_mutex);
+        lock_guard<mutex> lock(_mutex);
         printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
         _lst_suspend.push_back(co);
         printf("[%s][co_schedule, suspend]tid:%d, cid:%d, suspend, unlock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
@@ -158,7 +176,7 @@ void CoSchedule::release()
     co->_status = CO_STATUS_IDLE;
     {
         printf("[%s][co_schedule, release]tid:%d, cid:%d, suspend, try lock\n", date_ms().c_str(), gettid(), co->_id);
-        std::lock_guard<std::mutex> lock(_mutex);
+        lock_guard<mutex> lock(_mutex);
         printf("[%s][co_schedule, release]tid:%d, cid:%d, suspend, lock\n", date_ms().c_str(), gettid(), co->_id);
         _lst_free.push_back(co);
     }
@@ -177,7 +195,7 @@ void CoSchedule::resume(shared_ptr<Coroutine> co)
         co->_id
     );
     printf("[%s][co_schedule, resume]tid:%d, cid:%d, try lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
-    std::lock_guard<std::mutex> lock(_mutex);     
+    lock_guard<mutex> lock(_mutex);     
     printf("[%s][co_schedule, resume]tid:%d, cid:%d, lock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
     assert(_lst_suspend.is_exist(co));
     co->_status = CO_STATUS_READY;
@@ -186,9 +204,9 @@ void CoSchedule::resume(shared_ptr<Coroutine> co)
     printf("[%s][co_schedule, resume]tid:%d, cid:%d, unlock, mutex:%p\n", date_ms().c_str(), gettid(), co->_id, &_mutex);
 }
 
-CoTimerId CoSchedule::set_timer(int delay_ms, const std::function<void()>& func)
+CoTimerId CoSchedule::set_timer(int delay_ms, const function<void()>& func)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    lock_guard<mutex> lock(_mutex);
     return _timer->set(delay_ms, [this, func] {
         create(true, func);
     });
@@ -196,22 +214,47 @@ CoTimerId CoSchedule::set_timer(int delay_ms, const std::function<void()>& func)
 
 bool CoSchedule::stop_timer(const CoTimerId& timer_id)
 {
-    std::lock_guard<std::mutex> lock(_mutex);
+    lock_guard<mutex> lock(_mutex);
     return _timer->cancel(timer_id);
 }
+
+//vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
+//{
+//    vector<shared_ptr<Coroutine>> cos;
+//    lock_guard<mutex> lock(_mutex);
+//    printf("-------- [%ld] tid:%d, get_global_co, beg\n", now_us(), gettid());
+//    shared_ptr<Coroutine> co;
+//    if (_lst_ready.front(co)) {
+//        printf("-------- [%ld] tid:%d, get_global_co, mid, cid:%d\n", now_us(), gettid(), co->_id);
+//        _lst_ready.pop_front();
+//        cos.push_back(co);
+//    }
+//    printf("-------- [%ld] tid:%d, get_global_co, end\n", now_us(), gettid());
+//    return cos;
+//}
 
 vector<shared_ptr<Coroutine>> CoSchedule::get_global_co(int size)
 {
     vector<shared_ptr<Coroutine>> cos;
-    std::lock_guard<std::mutex> lock(_mutex);
-    printf("-------- [%ld] tid:%d, get_global_co, beg\n", now_us(), gettid());
-    shared_ptr<Coroutine> co;
-    if (_lst_ready.front(co)) {
-        printf("-------- [%ld] tid:%d, get_global_co, mid, cid:%d\n", now_us(), gettid(), co->_id);
+    lock_guard<mutex> lock(_mutex);
+    if (_lst_sleep.size() > 0) {
+        auto now = now_ms();
+        auto find_iter = _lst_sleep.upper_bound(now);
+        for (auto iter = _lst_sleep.begin(); iter != find_iter; iter++) {
+            _lst_ready.push_front(iter->second);
+        }
+        _lst_sleep.erase(_lst_sleep.begin(), find_iter);
+    }
+
+    for (int i = 0; i < size; i++) {
+        shared_ptr<Coroutine> co;
+        if (!_lst_ready.front(co)) {
+            break ;
+        }
         _lst_ready.pop_front();
+        printf("[%s]get_global_co, get ready, cid:%d\n", date_ms().c_str(), co->_id);
         cos.push_back(co);
     }
-    printf("-------- [%ld] tid:%d, get_global_co, end\n", now_us(), gettid());
     return cos;
 }
 

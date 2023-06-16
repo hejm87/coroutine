@@ -15,11 +15,14 @@ class CoChannel
 {
 public:
     CoChannel(int size = 0) {
+        printf("############## CoChannel construct\n");
         _closed = false;
         if (size > 0) {
+            printf("############## CoChannel construct, with cache\n");
             _use_cache = true;
             _queue = new RingQueue<T>(size);
         } else if (size == 0) {
+            printf("############## CoChannel construct, without cache\n");
             _use_cache = false;
             _queue = NULL;
         } else {
@@ -47,15 +50,22 @@ public:
     }
 
     ~CoChannel() {
-        if (_queue) {
-            delete _queue;
+        close();
+    }
+
+    void close() {
+        if (_closed) {
+            return ;
         }
+        _closed = true;
+        delete _queue;
+        _queue = NULL;
     }
 
     void operator>>(T& obj) {
         {
             _mutex.lock();
-            if (!_closed) {
+            if (_closed) {
                 throw CoException(CO_ERROR_CHANNEL_CLOSE);
             }
         }
@@ -69,7 +79,7 @@ public:
     void operator<<(const T& obj) {
         {
             _mutex.lock();
-            if (!_closed) {
+            if (_closed) {
                 throw CoException(CO_ERROR_CHANNEL_CLOSE);
             }
         }

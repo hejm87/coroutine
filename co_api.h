@@ -68,7 +68,12 @@ public:
             CO_LOG_DEBUG("############ tid:%d, getcid, co is invalid", gettid());
         }
         return co->_id;
-        //return Singleton<CoSchedule>::get_instance()->get_running_co()->_id;
+    }
+
+    static void get_info(CoInfo& info) {
+        info.stack_size = get_stack_size();
+        info.executor_count = get_executor_count();
+        info.coroutine_count = get_coroutine_count();
     }
 };
 

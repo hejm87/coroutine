@@ -18,16 +18,16 @@ CoSchedule::CoSchedule()
     _stack_size = get_stack_size();
     _executor_count = get_executor_count();
 
-//    CO_LOG_DEBUG("executor_count:%d", _executor_count);
-//    CO_LOG_DEBUG("timer_thread_count:%d", get_timer_thread_count());
-//    CO_LOG_DEBUG("coroutine_count:%d", get_coroutine_count());
-//
-//    printf("init|_lst_free addr:%p\n", &_lst_free);
-//    printf("init|_lst_ready addr:%p\n", &_lst_ready);
-//    printf("init|_lst_suspend addr:%p\n", &_lst_suspend);
+    printf("init|_lst_free addr:%p\n", &_lst_free);
+    printf("init|_lst_ready addr:%p\n", &_lst_ready);
+    printf("init|_lst_suspend addr:%p\n", &_lst_suspend);
 
-  //  for (int i = 0; i < _executor_count; i++) {
-    for (int i = 0; i < 1; i++) {
+    printf("executor_count:%d", _executor_count);
+    printf("timer_thread_count:%d", get_timer_thread_count());
+    printf("coroutine_count:%d", get_coroutine_count());
+
+    for (int i = 0; i < _executor_count; i++) {
+  //  for (int i = 0; i < 1; i++) {
         auto ptr = shared_ptr<CoExecutor>(new CoExecutor);
        // auto ptr = new CoExecutor;
         _executors.push_back(ptr);
@@ -139,7 +139,7 @@ void CoSchedule::yield(function<void()> doing)
             doing();
         }
     }
-   // ֮ǰ����д�����
+   // ֮ǰ����д�����?
    // if (doing) {
    //     doing();
    // }

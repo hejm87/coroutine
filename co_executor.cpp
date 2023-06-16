@@ -25,14 +25,14 @@ CoExecutor::~CoExecutor()
 bool CoExecutor::run()
 {
     auto ptr = shared_from_this();
-   // auto ptr = this;
     _thread = move(thread([ptr]() {
+        printf("[%s]tid:%d, CoExecutor thread is start\n", date_ms().c_str(), gettid());
         ptr->_is_running = true;
         g_co_executor = ptr;
         g_ctx_handle->init_context();
         while (!ptr->_is_set_end) {
             if (!ptr->on_execute()) {
-                usleep(100);
+                usleep(10);
             }
         }
         ptr->_is_running = false;
@@ -142,7 +142,7 @@ bool CoExecutor::on_execute()
 bool CoExecutor::get_ready_co(shared_ptr<Coroutine>& co)
 {
     auto now = now_ms();
-    // 获取休眠结束的协程
+    // 获取休眠结束的协�?
     if (_lst_sleep.size() > 0 && _lst_sleep.begin()->first <= now) {
         auto iter = _lst_sleep.begin();
         for (; iter != _lst_sleep.end(); iter++) {

@@ -89,15 +89,6 @@ public:
         return _is_set_end;
     }
 
-    void append_ready_list(const std::vector<std::shared_ptr<Coroutine>>& cos) {
-        if (cos.size() > 0) {
-            std::lock_guard<std::mutex> lock(_mutex);
-            for (auto& item : cos) {
-                _lst_ready.push_front(item);
-            }
-        }
-    }
-
 private:
     bool get_free_co(std::shared_ptr<Coroutine> &co) {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -118,9 +109,6 @@ private:
     CoTimer*    _timer;
 
     int     _stack_size;
-    int     _max_co_size;
-
-    int     _cur_co_size;
     int     _executor_count;
 
     std::atomic<bool>    _is_set_end;

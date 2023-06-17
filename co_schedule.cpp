@@ -180,18 +180,18 @@ void CoSchedule::resume(shared_ptr<Coroutine> co)
 void CoSchedule::resume(std::function<std::shared_ptr<Coroutine>()> do_and_resume)
 {
     auto cur_co = g_co_executor->get_running_co();
-   // printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, try lock\n", date_ms().c_str(), gettid(), cur_co->_id);
+    printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, try lock\n", date_ms().c_str(), gettid(), cur_co->_id);
     lock_guard<mutex> lock(_mutex);
-   // printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, lock\n", date_ms().c_str(), gettid(), cur_co->_id);
+    printf("[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, lock\n", date_ms().c_str(), gettid(), cur_co->_id);
     auto resume_co = do_and_resume();
     if (resume_co) {
-       // printf(
-       //     "[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, resume_cid:%d\n", 
-       //     date_ms().c_str(), 
-       //     gettid(), 
-       //     cur_co->_id, 
-       //     resume_co->_id
-       // );
+        printf(
+            "[%s][co_schedule, resume_lamdba]tid:%d, cid:%d, resume_cid:%d\n", 
+            date_ms().c_str(), 
+            gettid(), 
+            cur_co->_id, 
+            resume_co->_id
+        );
         assert(_lst_suspend.is_exist(resume_co));
         resume_co->_status = CO_STATUS_READY;
         _lst_suspend.remove(resume_co);

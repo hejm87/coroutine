@@ -22,8 +22,8 @@ int main()
     Singleton<CoSchedule>::get_instance()->set_logger(test_logger);
     try {
         CoChannel<int> chan;
-        CoApi::create(channel_writer, &chan);
-        CoApi::create(channel_reader, &chan);
+        CoApi::create(channel_writer, ref(chan));
+        CoApi::create(channel_reader, ref(chan));
         while (g_end_count != 2) {
             usleep(100);
         }
@@ -39,43 +39,43 @@ int main()
 
 void channel_reader(CoChannel<int>& chan)
 {
-    printf("cid:%d, reader is running\n", CoApi::getcid());
+    printf("############### READER|cid:%d, reader is running\n", CoApi::getcid());
     try {
         while (1) {
             int v;
-            printf("cid:%d, ready to read chan\n", CoApi::getcid());
+            printf("############### READER|cid:%d, ready to read chan\n", CoApi::getcid());
             chan >> v;
             g_acc_read += v;
         }
     } catch (CoException& ex) {
         if (ex.errorcode() == CO_ERROR_CHANNEL_CLOSE) {
-            printf("cid:%d, channel is closed\n", CoApi::getcid());
+            printf("############### READER|cid:%d, channel is closed\n", CoApi::getcid());
         } else {
-            printf("cid:%d, exception:%s\n", CoApi::getcid(), ex.what());
+            printf("############### READER|cid:%d, exception:%s\n", CoApi::getcid(), ex.what());
         }
     } catch (...) {
-        printf("cid:%d, unknow exception\n", CoApi::getcid());
+        printf("############### READER|cid:%d, unknow exception\n", CoApi::getcid());
     }
     g_end_count++;
 }
 
 void channel_writer(CoChannel<int>& chan)
 {
-    printf("cid:%d, writter is running\n", CoApi::getcid());
+    printf("############### WRITER|cid:%d, writter is running\n", CoApi::getcid());
     try {
         for (int i = 0; i < 10; i++) {
             chan << i;
             g_acc_write += i;
         }
-        printf("cid:%d, writer finish\n", CoApi::getcid());
+        printf("############### WRITER|cid:%d, writer finish\n", CoApi::getcid());
     } catch (CoException& ex) {
         if (ex.errorcode() == CO_ERROR_CHANNEL_CLOSE) {
-            printf("cid:%d, channel is closed\n", CoApi::getcid());
+            printf("############### WRITER|cid:%d, channel is closed\n", CoApi::getcid());
         } else {
-            printf("cid:%d, exception:%s\n", CoApi::getcid(), ex.what());
+            printf("############### WRITER|cid:%d, exception:%s\n", CoApi::getcid(), ex.what());
         }
     } catch (...) {
-        printf("cid:%d, unknow exception\n", CoApi::getcid());
+        printf("############### WRITER|cid:%d, unknow exception\n", CoApi::getcid());
     }
     g_end_count++;
 }
